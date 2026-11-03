@@ -1,0 +1,2319 @@
+{
+  "fuyuki_x_a": {
+    "quest_id": 93000001,
+    "phase": 3,
+    "region": "JP",
+    "url": "https://api.atlasacademy.io/nice/JP/quest/93000001/3",
+    "enemies": [
+      {
+        "name": "スケルトン",
+        "svt_id": 9930100,
+        "hp": 808,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classSaber"
+        ]
+      },
+      {
+        "name": "スケルトンＡ",
+        "svt_id": 9930100,
+        "hp": 808,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classSaber"
+        ]
+      },
+      {
+        "name": "スケルトンＢ",
+        "svt_id": 9930100,
+        "hp": 1007,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classSaber"
+        ]
+      }
+    ]
+  },
+  "fuyuki_x_b": {
+    "quest_id": 93000002,
+    "phase": 3,
+    "region": "JP",
+    "url": "https://api.atlasacademy.io/nice/JP/quest/93000002/3",
+    "enemies": [
+      {
+        "name": "スケルトン",
+        "svt_id": 9930100,
+        "hp": 1007,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classSaber"
+        ]
+      },
+      {
+        "name": "スケルトンＡ",
+        "svt_id": 9930100,
+        "hp": 808,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classSaber"
+        ]
+      },
+      {
+        "name": "スケルトンＢ",
+        "svt_id": 9930100,
+        "hp": 1007,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classSaber"
+        ]
+      },
+      {
+        "name": "スケルトンＡ",
+        "svt_id": 9930200,
+        "hp": 1017,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classLancer"
+        ]
+      },
+      {
+        "name": "スケルトンＢ",
+        "svt_id": 9930200,
+        "hp": 1017,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classLancer"
+        ]
+      }
+    ]
+  },
+  "fuyuki_x_c": {
+    "quest_id": 93000003,
+    "phase": 3,
+    "region": "JP",
+    "url": "https://api.atlasacademy.io/nice/JP/quest/93000003/3",
+    "enemies": [
+      {
+        "name": "スケルトンＡ",
+        "svt_id": 9930100,
+        "hp": 808,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classSaber"
+        ]
+      },
+      {
+        "name": "スケルトンＢ",
+        "svt_id": 9930100,
+        "hp": 808,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classSaber"
+        ]
+      },
+      {
+        "name": "スケルトンＡ",
+        "svt_id": 9930100,
+        "hp": 1007,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classSaber"
+        ]
+      },
+      {
+        "name": "スケルトンＢ",
+        "svt_id": 9930200,
+        "hp": 1017,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classLancer"
+        ]
+      },
+      {
+        "name": "スケルトンＡ",
+        "svt_id": 9930200,
+        "hp": 1421,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classLancer"
+        ]
+      },
+      {
+        "name": "スケルトンＢ",
+        "svt_id": 9930200,
+        "hp": 1017,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classLancer"
+        ]
+      },
+      {
+        "name": "スケルトンＣ",
+        "svt_id": 9930100,
+        "hp": 1807,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classSaber"
+        ]
+      }
+    ]
+  },
+  "fuyuki_x_d": {
+    "quest_id": 93000004,
+    "phase": 3,
+    "region": "JP",
+    "url": "https://api.atlasacademy.io/nice/JP/quest/93000004/3",
+    "enemies": [
+      {
+        "name": "スケルトンＡ",
+        "svt_id": 9930100,
+        "hp": 1407,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classSaber"
+        ]
+      },
+      {
+        "name": "スケルトンＢ",
+        "svt_id": 9930300,
+        "hp": 1366,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classArcher"
+        ]
+      },
+      {
+        "name": "スケルトンＡ",
+        "svt_id": 9930100,
+        "hp": 1407,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classSaber"
+        ]
+      },
+      {
+        "name": "スケルトンＢ",
+        "svt_id": 9930100,
+        "hp": 1407,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classSaber"
+        ]
+      },
+      {
+        "name": "スケルトンＣ",
+        "svt_id": 9930300,
+        "hp": 1754,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classArcher"
+        ]
+      },
+      {
+        "name": "スケルトンＡ",
+        "svt_id": 9930100,
+        "hp": 1407,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classSaber"
+        ]
+      },
+      {
+        "name": "スケルトンＢ",
+        "svt_id": 9930300,
+        "hp": 1366,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classArcher"
+        ]
+      },
+      {
+        "name": "スケルトンＣ",
+        "svt_id": 9930300,
+        "hp": 1754,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classArcher"
+        ]
+      }
+    ]
+  },
+  "fuyuki_x_e": {
+    "quest_id": 93000005,
+    "phase": 3,
+    "region": "JP",
+    "url": "https://api.atlasacademy.io/nice/JP/quest/93000005/3",
+    "enemies": [
+      {
+        "name": "スケルトンＡ",
+        "svt_id": 9930100,
+        "hp": 1607,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classSaber"
+        ]
+      },
+      {
+        "name": "スケルトンＢ",
+        "svt_id": 9930300,
+        "hp": 1172,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classArcher"
+        ]
+      },
+      {
+        "name": "スケルトンＣ",
+        "svt_id": 9930300,
+        "hp": 1172,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classArcher"
+        ]
+      },
+      {
+        "name": "スケルトンＡ",
+        "svt_id": 9930100,
+        "hp": 1407,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classSaber"
+        ]
+      },
+      {
+        "name": "スケルトンＢ",
+        "svt_id": 9930100,
+        "hp": 1807,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classSaber"
+        ]
+      },
+      {
+        "name": "スケルトンＣ",
+        "svt_id": 9930100,
+        "hp": 1407,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classSaber"
+        ]
+      },
+      {
+        "name": "シャドウサーヴァント",
+        "svt_id": 400100,
+        "hp": 8214,
+        "traits": [
+          "canBeInBattle",
+          "unknown",
+          "classRider",
+          "genderFemale",
+          "attributeEarth",
+          "skyOrEarthServant",
+          "skyOrEarthExceptPseudoAndDemiServant",
+          "alignmentChaotic",
+          "alignmentGood",
+          "weakToEnumaElish",
+          "servant",
+          "humanoid",
+          "threeStarServant",
+          "divine",
+          "riding",
+          "lamia",
+          "divineOrDemonOrUndead",
+          "divineSpirit",
+          "standardClassServant",
+          "FSNServant",
+          "shadow"
+        ]
+      }
+    ]
+  },
+  "fuyuki_x_f": {
+    "quest_id": 93000006,
+    "phase": 3,
+    "region": "JP",
+    "url": "https://api.atlasacademy.io/nice/JP/quest/93000006/3",
+    "enemies": [
+      {
+        "name": "スケルトンＡ",
+        "svt_id": 9930300,
+        "hp": 1754,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classArcher"
+        ]
+      },
+      {
+        "name": "スケルトンＢ",
+        "svt_id": 9930300,
+        "hp": 1754,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classArcher"
+        ]
+      },
+      {
+        "name": "スケルトンＣ",
+        "svt_id": 9930300,
+        "hp": 2937,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classArcher"
+        ]
+      },
+      {
+        "name": "スケルトンＡ",
+        "svt_id": 9930100,
+        "hp": 2407,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classSaber"
+        ]
+      },
+      {
+        "name": "スケルトンＢ",
+        "svt_id": 9930100,
+        "hp": 2407,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classSaber"
+        ]
+      },
+      {
+        "name": "スケルトンＣ",
+        "svt_id": 9930100,
+        "hp": 3027,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classSaber"
+        ]
+      },
+      {
+        "name": "シャドウサーヴァントＡ",
+        "svt_id": 600200,
+        "hp": 9533,
+        "traits": [
+          "canBeInBattle",
+          "unknown",
+          "classAssassin",
+          "genderMale",
+          "attributeHuman",
+          "alignmentLawful",
+          "alignmentEvil",
+          "weakToEnumaElish",
+          "servant",
+          "humanoid",
+          "twoStarServant",
+          "hominidaeServant",
+          "standardClassServant",
+          "FSNServant",
+          "shadow"
+        ]
+      },
+      {
+        "name": "シャドウサーヴァントＢ",
+        "svt_id": 300600,
+        "hp": 8121,
+        "traits": [
+          "canBeInBattle",
+          "unknown",
+          "classLancer",
+          "genderMale",
+          "attributeHuman",
+          "alignmentChaotic",
+          "alignmentGood",
+          "weakToEnumaElish",
+          "servant",
+          "humanoid",
+          "twoStarServant",
+          "brynhildsBeloved",
+          "hominidaeServant",
+          "genji",
+          "fairyTaleServant",
+          "defender",
+          "standardClassServant",
+          "shadow"
+        ]
+      }
+    ]
+  },
+  "fuyuki_x_g": {
+    "quest_id": 93000009,
+    "phase": 1,
+    "region": "JP",
+    "url": "https://api.atlasacademy.io/nice/JP/quest/93000009/1",
+    "enemies": [
+      {
+        "name": "シャドウ・バーサーカー",
+        "svt_id": 700100,
+        "hp": 209245,
+        "traits": [
+          "canBeInBattle",
+          "unknown",
+          "classBerserker",
+          "genderMale",
+          "attributeSky",
+          "skyOrEarthServant",
+          "skyOrEarthExceptPseudoAndDemiServant",
+          "servantsWithSkyAttribute",
+          "alignmentChaotic",
+          "alignmentMadness",
+          "weakToEnumaElish",
+          "servant",
+          "humanoid",
+          "fourStarServant",
+          "divine",
+          "divineOrDemonOrUndead",
+          "greekMythologyMales",
+          "associatedToTheArgo",
+          "hominidaeServant",
+          "standardClassServant",
+          "FSNServant",
+          "shadow"
+        ]
+      }
+    ]
+  },
+  "orleans_la_charite": {
+    "quest_id": 93000103,
+    "phase": 3,
+    "region": "JP",
+    "url": "https://api.atlasacademy.io/nice/JP/quest/93000103/3",
+    "enemies": [
+      {
+        "name": "ゾンビＡ",
+        "svt_id": 9931100,
+        "hp": 2764,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "classLancer",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "undead",
+          "zombie",
+          "undeadOrDemon",
+          "demonic",
+          "divineOrDemonOrUndead"
+        ]
+      },
+      {
+        "name": "ゾンビＢ",
+        "svt_id": 9931100,
+        "hp": 2764,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "classLancer",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "undead",
+          "zombie",
+          "undeadOrDemon",
+          "demonic",
+          "divineOrDemonOrUndead"
+        ]
+      },
+      {
+        "name": "ワイバーン",
+        "svt_id": 9932500,
+        "hp": 5400,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeEarth",
+          "demonBeast",
+          "wyvern",
+          "dragon",
+          "classRider"
+        ]
+      },
+      {
+        "name": "ワイバーンＡ",
+        "svt_id": 9932500,
+        "hp": 5400,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeEarth",
+          "demonBeast",
+          "wyvern",
+          "dragon",
+          "classRider"
+        ]
+      },
+      {
+        "name": "ワイバーンＢ",
+        "svt_id": 9932500,
+        "hp": 5400,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeEarth",
+          "demonBeast",
+          "wyvern",
+          "dragon",
+          "classRider"
+        ]
+      },
+      {
+        "name": "ワイバーンＡ",
+        "svt_id": 9932500,
+        "hp": 6597,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeEarth",
+          "demonBeast",
+          "wyvern",
+          "dragon",
+          "classRider"
+        ]
+      },
+      {
+        "name": "ワイバーンＢ",
+        "svt_id": 9932500,
+        "hp": 6597,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeEarth",
+          "demonBeast",
+          "wyvern",
+          "dragon",
+          "classRider"
+        ]
+      },
+      {
+        "name": "ワイバーンドレッド",
+        "svt_id": 9932500,
+        "hp": 8436,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeEarth",
+          "demonBeast",
+          "wyvern",
+          "dragon",
+          "classRider"
+        ]
+      }
+    ]
+  },
+  "orleans_domremy": {
+    "quest_id": 93000101,
+    "phase": 3,
+    "region": "JP",
+    "url": "https://api.atlasacademy.io/nice/JP/quest/93000101/3",
+    "enemies": [
+      {
+        "name": "フランス兵Ａ",
+        "svt_id": 9931100,
+        "hp": 959,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "classLancer"
+        ]
+      },
+      {
+        "name": "フランス兵Ｂ",
+        "svt_id": 9931100,
+        "hp": 959,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "classLancer"
+        ]
+      },
+      {
+        "name": "フランス兵Ａ",
+        "svt_id": 9931000,
+        "hp": 1264,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "classSaber"
+        ]
+      },
+      {
+        "name": "フランス兵Ｂ",
+        "svt_id": 9931000,
+        "hp": 1054,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "classSaber"
+        ]
+      },
+      {
+        "name": "フランス兵Ａ",
+        "svt_id": 9931000,
+        "hp": 1264,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "classSaber"
+        ]
+      },
+      {
+        "name": "フランス兵Ｂ",
+        "svt_id": 9931000,
+        "hp": 1264,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "classSaber"
+        ]
+      },
+      {
+        "name": "フランス兵Ｃ",
+        "svt_id": 9931200,
+        "hp": 3808,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "classSaber"
+        ]
+      }
+    ]
+  },
+  "orleans_jura": {
+    "quest_id": 93000104,
+    "phase": 3,
+    "region": "JP",
+    "url": "https://api.atlasacademy.io/nice/JP/quest/93000104/3",
+    "enemies": [
+      {
+        "name": "ウェアウルフＡ",
+        "svt_id": 9933900,
+        "hp": 4000,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeEarth",
+          "demonBeast",
+          "werebeast",
+          "humanoid",
+          "wildbeast",
+          "demonic",
+          "classSaber"
+        ]
+      },
+      {
+        "name": "ウェアウルフＢ",
+        "svt_id": 9933900,
+        "hp": 4000,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeEarth",
+          "demonBeast",
+          "werebeast",
+          "humanoid",
+          "wildbeast",
+          "demonic",
+          "classSaber"
+        ]
+      },
+      {
+        "name": "ウェアウルフＡ",
+        "svt_id": 9934000,
+        "hp": 5766,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeEarth",
+          "demonBeast",
+          "werebeast",
+          "humanoid",
+          "wildbeast",
+          "demonic",
+          "classLancer"
+        ]
+      },
+      {
+        "name": "ウェアウルフＢ",
+        "svt_id": 9934000,
+        "hp": 5766,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeEarth",
+          "demonBeast",
+          "werebeast",
+          "humanoid",
+          "wildbeast",
+          "demonic",
+          "classLancer"
+        ]
+      },
+      {
+        "name": "ウェアウルフＣ",
+        "svt_id": 9934100,
+        "hp": 5371,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeEarth",
+          "demonBeast",
+          "werebeast",
+          "humanoid",
+          "wildbeast",
+          "demonic",
+          "classAssassin"
+        ]
+      },
+      {
+        "name": "シャドウサーヴァント",
+        "svt_id": 401900,
+        "hp": 38020,
+        "traits": [
+          "canBeInBattle",
+          "unknown",
+          "classRider",
+          "genderFemale",
+          "attributeHuman",
+          "alignmentLawful",
+          "alignmentGood",
+          "weakToEnumaElish",
+          "servant",
+          "humanoid",
+          "fourStarServant",
+          "divine",
+          "riding",
+          "divineOrDemonOrUndead",
+          "hominidaeServant",
+          "standardClassServant",
+          "shadow"
+        ]
+      },
+      {
+        "name": "ワイバーンドレッドＡ",
+        "svt_id": 9932500,
+        "hp": 7068,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeEarth",
+          "demonBeast",
+          "wyvern",
+          "dragon",
+          "classRider"
+        ]
+      },
+      {
+        "name": "ワイバーンドレッドＢ",
+        "svt_id": 9932500,
+        "hp": 7068,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeEarth",
+          "demonBeast",
+          "wyvern",
+          "dragon",
+          "classRider"
+        ]
+      }
+    ]
+  },
+  "orleans_bordeaux": {
+    "quest_id": 93000110,
+    "phase": 3,
+    "region": "JP",
+    "url": "https://api.atlasacademy.io/nice/JP/quest/93000110/3",
+    "enemies": [
+      {
+        "name": "ウェアウルフＡ",
+        "svt_id": 9934000,
+        "hp": 5191,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeEarth",
+          "demonBeast",
+          "werebeast",
+          "humanoid",
+          "wildbeast",
+          "demonic",
+          "classLancer"
+        ]
+      },
+      {
+        "name": "ウェアウルフＢ",
+        "svt_id": 9934000,
+        "hp": 5191,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeEarth",
+          "demonBeast",
+          "werebeast",
+          "humanoid",
+          "wildbeast",
+          "demonic",
+          "classLancer"
+        ]
+      },
+      {
+        "name": "ウェアウルフＣ",
+        "svt_id": 9934000,
+        "hp": 5191,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeEarth",
+          "demonBeast",
+          "werebeast",
+          "humanoid",
+          "wildbeast",
+          "demonic",
+          "classLancer"
+        ]
+      },
+      {
+        "name": "ウェアウルフＡ",
+        "svt_id": 9933900,
+        "hp": 6280,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeEarth",
+          "demonBeast",
+          "werebeast",
+          "humanoid",
+          "wildbeast",
+          "demonic",
+          "classSaber"
+        ]
+      },
+      {
+        "name": "ウェアウルフＢ",
+        "svt_id": 9934000,
+        "hp": 6342,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeEarth",
+          "demonBeast",
+          "werebeast",
+          "humanoid",
+          "wildbeast",
+          "demonic",
+          "classLancer"
+        ]
+      },
+      {
+        "name": "ウェアウルフＡ",
+        "svt_id": 9934100,
+        "hp": 11322,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeEarth",
+          "demonBeast",
+          "werebeast",
+          "humanoid",
+          "wildbeast",
+          "demonic",
+          "classAssassin"
+        ]
+      },
+      {
+        "name": "ウェアウルフＢ",
+        "svt_id": 9934100,
+        "hp": 7033,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeEarth",
+          "demonBeast",
+          "werebeast",
+          "humanoid",
+          "wildbeast",
+          "demonic",
+          "classAssassin"
+        ]
+      },
+      {
+        "name": "ウェアウルフＣ",
+        "svt_id": 9934100,
+        "hp": 7033,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeEarth",
+          "demonBeast",
+          "werebeast",
+          "humanoid",
+          "wildbeast",
+          "demonic",
+          "classAssassin"
+        ]
+      }
+    ]
+  },
+  "orleans_orleans": {
+    "quest_id": 93000107,
+    "phase": 3,
+    "region": "JP",
+    "url": "https://api.atlasacademy.io/nice/JP/quest/93000107/3",
+    "enemies": [
+      {
+        "name": "スケルトンＡ",
+        "svt_id": 9930200,
+        "hp": 4673,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classLancer"
+        ]
+      },
+      {
+        "name": "スケルトンＢ",
+        "svt_id": 9930200,
+        "hp": 4673,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeHuman",
+          "undead",
+          "skeleton",
+          "soldier",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classLancer"
+        ]
+      },
+      {
+        "name": "ワイバーンエビル",
+        "svt_id": 9932500,
+        "hp": 10368,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeEarth",
+          "demonBeast",
+          "wyvern",
+          "dragon",
+          "classRider"
+        ]
+      },
+      {
+        "name": "ワイバーンドレッドＡ",
+        "svt_id": 9932500,
+        "hp": 7068,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeEarth",
+          "demonBeast",
+          "wyvern",
+          "dragon",
+          "classRider"
+        ]
+      },
+      {
+        "name": "ワイバーンドレッドＢ",
+        "svt_id": 9932500,
+        "hp": 7068,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeEarth",
+          "demonBeast",
+          "wyvern",
+          "dragon",
+          "classRider"
+        ]
+      },
+      {
+        "name": "シャドウサーヴァント",
+        "svt_id": 500200,
+        "hp": 48432,
+        "traits": [
+          "canBeInBattle",
+          "unknown",
+          "classCaster",
+          "genderMale",
+          "attributeHuman",
+          "alignmentChaotic",
+          "alignmentEvil",
+          "weakToEnumaElish",
+          "servant",
+          "humanoid",
+          "threeStarServant",
+          "hominidaeServant",
+          "standardClassServant",
+          "shadow"
+        ]
+      }
+    ]
+  },
+  "septem_appia": {
+    "quest_id": 93000201,
+    "phase": 3,
+    "region": "JP",
+    "url": "https://api.atlasacademy.io/nice/JP/quest/93000201/3",
+    "enemies": [
+      {
+        "name": "連合ローマ兵Ａ",
+        "svt_id": 9930700,
+        "hp": 1723,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "classSaber",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "roman"
+        ]
+      },
+      {
+        "name": "連合ローマ兵Ｂ",
+        "svt_id": 9930700,
+        "hp": 1723,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "classSaber",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "roman"
+        ]
+      },
+      {
+        "name": "連合ローマ兵Ｃ",
+        "svt_id": 9930700,
+        "hp": 2293,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "classSaber",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "roman"
+        ]
+      },
+      {
+        "name": "連合ローマ兵Ａ",
+        "svt_id": 9930900,
+        "hp": 1672,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "classArcher",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "roman"
+        ]
+      },
+      {
+        "name": "連合ローマ兵Ｂ",
+        "svt_id": 9930900,
+        "hp": 1672,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "classArcher",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "roman"
+        ]
+      },
+      {
+        "name": "連合ローマ兵Ｃ",
+        "svt_id": 9930900,
+        "hp": 2225,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "classArcher",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "roman"
+        ]
+      },
+      {
+        "name": "連合ローマ兵Ａ",
+        "svt_id": 9930800,
+        "hp": 2316,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "classLancer",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "roman"
+        ]
+      },
+      {
+        "name": "連合ローマ兵Ｂ",
+        "svt_id": 9930800,
+        "hp": 2316,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "classLancer",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "roman"
+        ]
+      },
+      {
+        "name": "シャドウサーヴァント",
+        "svt_id": 701000,
+        "hp": 61212,
+        "traits": [
+          "canBeInBattle",
+          "unknown",
+          "classBerserker",
+          "genderMale",
+          "attributeHuman",
+          "alignmentChaotic",
+          "alignmentEvil",
+          "weakToEnumaElish",
+          "servant",
+          "humanoid",
+          "twoStarServant",
+          "roman",
+          "king",
+          "hominidaeServant",
+          "standardClassServant",
+          "shadow"
+        ]
+      }
+    ]
+  },
+  "septem_capital": {
+    "quest_id": 93000208,
+    "phase": 3,
+    "region": "JP",
+    "url": "https://api.atlasacademy.io/nice/JP/quest/93000208/3",
+    "enemies": [
+      {
+        "name": "ゴーレム",
+        "svt_id": 9932300,
+        "hp": 9278,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeSky",
+          "artificialDemon",
+          "golem",
+          "classBerserker"
+        ]
+      },
+      {
+        "name": "連合ローマ兵Ａ",
+        "svt_id": 9930900,
+        "hp": 2603,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "classArcher",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "roman"
+        ]
+      },
+      {
+        "name": "連合ローマ兵Ｂ",
+        "svt_id": 9930900,
+        "hp": 2603,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "classArcher",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "roman"
+        ]
+      },
+      {
+        "name": "連合ローマ兵隊長",
+        "svt_id": 9930700,
+        "hp": 3252,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "classSaber",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "roman"
+        ]
+      },
+      {
+        "name": "ストーンゴーレム",
+        "svt_id": 9932300,
+        "hp": 14852,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeSky",
+          "artificialDemon",
+          "golem",
+          "classBerserker"
+        ]
+      },
+      {
+        "name": "シャドウサーヴァント",
+        "svt_id": 701100,
+        "hp": 78771,
+        "traits": [
+          "canBeInBattle",
+          "unknown",
+          "classBerserker",
+          "genderMale",
+          "attributeHuman",
+          "alignmentLawful",
+          "alignmentBalanced",
+          "weakToEnumaElish",
+          "servant",
+          "humanoid",
+          "threeStarServant",
+          "king",
+          "hominidaeServant",
+          "giant",
+          "standardClassServant",
+          "shadow",
+          "giant"
+        ]
+      }
+    ]
+  },
+  "septem_etna": {
+    "quest_id": 93000209,
+    "phase": 3,
+    "region": "JP",
+    "url": "https://api.atlasacademy.io/nice/JP/quest/93000209/3",
+    "enemies": [
+      {
+        "name": "ゴーストＡ",
+        "svt_id": 9931600,
+        "hp": 9177,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeSky",
+          "undead",
+          "ghost",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classAssassin"
+        ]
+      },
+      {
+        "name": "ゴーストＢ",
+        "svt_id": 9931600,
+        "hp": 8105,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeSky",
+          "undead",
+          "ghost",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classAssassin"
+        ]
+      },
+      {
+        "name": "ゴーストＡ",
+        "svt_id": 9931600,
+        "hp": 10249,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeSky",
+          "undead",
+          "ghost",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classAssassin"
+        ]
+      },
+      {
+        "name": "ゴーストＢ",
+        "svt_id": 9931600,
+        "hp": 10249,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeSky",
+          "undead",
+          "ghost",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classAssassin"
+        ]
+      },
+      {
+        "name": "ゴーストＡ",
+        "svt_id": 9931600,
+        "hp": 9177,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeSky",
+          "undead",
+          "ghost",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classAssassin"
+        ]
+      },
+      {
+        "name": "ゴーストＢ",
+        "svt_id": 9931600,
+        "hp": 14056,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeSky",
+          "undead",
+          "ghost",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classAssassin"
+        ]
+      },
+      {
+        "name": "ゴーストＣ",
+        "svt_id": 9931600,
+        "hp": 9177,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeSky",
+          "undead",
+          "ghost",
+          "undeadOrDemon",
+          "divineOrDemonOrUndead",
+          "demonic",
+          "classAssassin"
+        ]
+      }
+    ]
+  },
+  "okeanos_pirate_ship": {
+    "quest_id": 93000301,
+    "phase": 3,
+    "region": "JP",
+    "url": "https://api.atlasacademy.io/nice/JP/quest/93000301/3",
+    "enemies": [
+      {
+        "name": "海賊Ａ",
+        "svt_id": 9931300,
+        "hp": 3136,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "classArcher"
+        ]
+      },
+      {
+        "name": "海賊Ｂ",
+        "svt_id": 9931300,
+        "hp": 3136,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "classArcher"
+        ]
+      },
+      {
+        "name": "海賊Ｃ",
+        "svt_id": 9931300,
+        "hp": 3136,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "classArcher"
+        ]
+      },
+      {
+        "name": "海賊Ａ",
+        "svt_id": 9931400,
+        "hp": 3838,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "classSaber"
+        ]
+      },
+      {
+        "name": "海賊Ｂ",
+        "svt_id": 9931400,
+        "hp": 3838,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "classSaber"
+        ]
+      },
+      {
+        "name": "海賊Ｃ",
+        "svt_id": 9931400,
+        "hp": 3838,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "classSaber"
+        ]
+      },
+      {
+        "name": "海賊頭",
+        "svt_id": 9931400,
+        "hp": 13332,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "classSaber"
+        ]
+      },
+      {
+        "name": "海賊Ａ",
+        "svt_id": 9931300,
+        "hp": 8232,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "classArcher"
+        ]
+      },
+      {
+        "name": "海賊Ｂ",
+        "svt_id": 9931300,
+        "hp": 8232,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "classArcher"
+        ]
+      }
+    ]
+  },
+  "london_old_street": {
+    "quest_id": 93000401,
+    "phase": 3,
+    "region": "JP",
+    "url": "https://api.atlasacademy.io/nice/JP/quest/93000401/3",
+    "enemies": [
+      {
+        "name": "オートマタＡ",
+        "svt_id": 9932200,
+        "hp": 7286,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeSky",
+          "artificialDemon",
+          "automata",
+          "mechanical",
+          "classAssassin"
+        ]
+      },
+      {
+        "name": "オートマタＢ",
+        "svt_id": 9932200,
+        "hp": 7286,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeSky",
+          "artificialDemon",
+          "automata",
+          "mechanical",
+          "classAssassin"
+        ]
+      },
+      {
+        "name": "オートマタＡ",
+        "svt_id": 9932200,
+        "hp": 12286,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeSky",
+          "artificialDemon",
+          "automata",
+          "mechanical",
+          "classAssassin"
+        ]
+      },
+      {
+        "name": "オートマタＢ",
+        "svt_id": 9932200,
+        "hp": 12286,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeSky",
+          "artificialDemon",
+          "automata",
+          "mechanical",
+          "classAssassin"
+        ]
+      },
+      {
+        "name": "オートマタＡ",
+        "svt_id": 9932200,
+        "hp": 18286,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeSky",
+          "artificialDemon",
+          "automata",
+          "mechanical",
+          "classAssassin"
+        ]
+      },
+      {
+        "name": "オートマタＢ",
+        "svt_id": 9932200,
+        "hp": 22286,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeSky",
+          "artificialDemon",
+          "automata",
+          "mechanical",
+          "classAssassin"
+        ]
+      },
+      {
+        "name": "オートマタＣ",
+        "svt_id": 9932200,
+        "hp": 18286,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "attributeSky",
+          "artificialDemon",
+          "automata",
+          "mechanical",
+          "classAssassin"
+        ]
+      }
+    ]
+  },
+  "america_charlotte": {
+    "quest_id": 93000512,
+    "phase": 3,
+    "region": "JP",
+    "url": "https://api.atlasacademy.io/nice/JP/quest/93000512/3",
+    "enemies": [
+      {
+        "name": "ケルト兵Ａ",
+        "svt_id": 9936300,
+        "hp": 17052,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "classArcher"
+        ]
+      },
+      {
+        "name": "ケルト兵Ｂ",
+        "svt_id": 9936300,
+        "hp": 17052,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "classArcher"
+        ]
+      },
+      {
+        "name": "ドルイド",
+        "svt_id": 9936600,
+        "hp": 17052,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "classCaster"
+        ]
+      },
+      {
+        "name": "シャドウサーヴァントＡ",
+        "svt_id": 700500,
+        "hp": 50193,
+        "traits": [
+          "canBeInBattle",
+          "unknown",
+          "classBerserker",
+          "genderMale",
+          "attributeHuman",
+          "alignmentNeutral",
+          "alignmentBalanced",
+          "weakToEnumaElish",
+          "servant",
+          "humanoid",
+          "oneStarServant",
+          "roman",
+          "hominidaeServant",
+          "standardClassServant",
+          "shadow"
+        ]
+      },
+      {
+        "name": "シャドウサーヴァントＢ",
+        "svt_id": 701500,
+        "hp": 46802,
+        "traits": [
+          "canBeInBattle",
+          "unknown",
+          "classBerserker",
+          "genderMale",
+          "attributeHuman",
+          "alignmentChaotic",
+          "alignmentBalanced",
+          "weakToEnumaElish",
+          "servant",
+          "humanoid",
+          "twoStarServant",
+          "king",
+          "hominidaeServant",
+          "standardClassServant",
+          "shadow"
+        ]
+      },
+      {
+        "name": "ケルト兵",
+        "svt_id": 9936400,
+        "hp": 37332,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "classLancer"
+        ]
+      },
+      {
+        "name": "シャドウサーヴァントＡ",
+        "svt_id": 300900,
+        "hp": 103138,
+        "traits": [
+          "canBeInBattle",
+          "unknown",
+          "classLancer",
+          "genderMale",
+          "attributeHuman",
+          "alignmentLawful",
+          "alignmentBalanced",
+          "weakToEnumaElish",
+          "servant",
+          "humanoid",
+          "twoStarServant",
+          "king",
+          "hominidaeServant",
+          "defender",
+          "standardClassServant",
+          "shadow"
+        ]
+      },
+      {
+        "name": "シャドウサーヴァントＢ",
+        "svt_id": 700300,
+        "hp": 103775,
+        "traits": [
+          "canBeInBattle",
+          "unknown",
+          "classBerserker",
+          "genderMale",
+          "attributeHuman",
+          "alignmentChaotic",
+          "alignmentEvil",
+          "weakToEnumaElish",
+          "servant",
+          "humanoid",
+          "threeStarServant",
+          "hominidaeServant",
+          "mechanical",
+          "standardClassServant",
+          "shadow"
+        ]
+      },
+      {
+        "name": "ケルト兵",
+        "svt_id": 9936400,
+        "hp": 38556,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "classLancer"
+        ]
+      }
+    ]
+  },
+  "septem_massilia": {
+    "quest_id": 93000205,
+    "phase": 3,
+    "region": "JP",
+    "url": "https://api.atlasacademy.io/nice/JP/quest/93000205/3",
+    "enemies": [
+      {
+        "name": "連合ローマ兵Ａ",
+        "svt_id": 9930700,
+        "hp": 1533,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "classSaber",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "roman"
+        ]
+      },
+      {
+        "name": "連合ローマ兵Ｂ",
+        "svt_id": 9930700,
+        "hp": 1533,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "classSaber",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "roman"
+        ]
+      },
+      {
+        "name": "連合ローマ兵Ａ",
+        "svt_id": 9930800,
+        "hp": 1740,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "classLancer",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "roman"
+        ]
+      },
+      {
+        "name": "連合ローマ兵Ｂ",
+        "svt_id": 9930800,
+        "hp": 1740,
+        "traits": [
+          "canBeInBattle",
+          "notBasedOnServant",
+          "genderMale",
+          "classLancer",
+          "attributeHuman",
+          "human",
+          "soldier",
+          "humanoid",
+          "roman"
+        ]
+      },
+      {
+        "name": "シャドウサーヴァントＡ",
+        "svt_id": 401100,
+        "hp": 44222,
+        "traits": [
+          "canBeInBattle",
+          "unknown",
+          "classRider",
+          "genderFemale",
+          "attributeHuman",
+          "alignmentNeutral",
+          "alignmentGood",
+          "weakToEnumaElish",
+          "servant",
+          "humanoid",
+          "threeStarServant",
+          "riding",
+          "king",
+          "hominidaeServant",
+          "standardClassServant",
+          "shadow"
+        ]
+      },
+      {
+        "name": "シャドウサーヴァントＢ",
+        "svt_id": 700500,
+        "hp": 36240,
+        "traits": [
+          "canBeInBattle",
+          "unknown",
+          "classBerserker",
+          "genderMale",
+          "attributeHuman",
+          "alignmentNeutral",
+          "alignmentBalanced",
+          "weakToEnumaElish",
+          "servant",
+          "humanoid",
+          "oneStarServant",
+          "roman",
+          "hominidaeServant",
+          "standardClassServant",
+          "shadow"
+        ]
+      }
+    ]
+  }
+}

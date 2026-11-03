@@ -1,0 +1,220 @@
+{
+  "fuyuki_x_a": {
+    "id": 93000001,
+    "phase": 3,
+    "name": "宅邸残迹",
+    "spot": "未确认坐标Ｘ－Ａ",
+    "war": "特异点F 燃烧污染都市 冬木",
+    "source": "https://api.atlasacademy.io/nice/CN/war/100"
+  },
+  "fuyuki_x_b": {
+    "id": 93000002,
+    "phase": 3,
+    "name": "爆炸中心地",
+    "spot": "未确认坐标Ｘ－Ｂ",
+    "war": "特异点F 燃烧污染都市 冬木",
+    "source": "https://api.atlasacademy.io/nice/CN/war/100"
+  },
+  "fuyuki_x_c": {
+    "id": 93000003,
+    "phase": 3,
+    "name": "大桥",
+    "spot": "未确认坐标Ｘ－Ｃ",
+    "war": "特异点F 燃烧污染都市 冬木",
+    "source": "https://api.atlasacademy.io/nice/CN/war/100"
+  },
+  "fuyuki_x_d": {
+    "id": 93000004,
+    "phase": 3,
+    "name": "鲜红港口",
+    "spot": "未确认坐标Ｘ－Ｄ",
+    "war": "特异点F 燃烧污染都市 冬木",
+    "source": "https://api.atlasacademy.io/nice/CN/war/100"
+  },
+  "fuyuki_x_e": {
+    "id": 93000005,
+    "phase": 3,
+    "name": "骸骨彷徨的教会",
+    "spot": "未确认坐标Ｘ－Ｅ",
+    "war": "特异点F 燃烧污染都市 冬木",
+    "source": "https://api.atlasacademy.io/nice/CN/war/100",
+    "spot_free_quest_count": 1
+  },
+  "fuyuki_x_f": {
+    "id": 93000006,
+    "phase": 3,
+    "name": "烧尽崩塌的校舍",
+    "spot": "未确认坐标Ｘ－Ｆ",
+    "war": "特异点F 燃烧污染都市 冬木",
+    "source": "https://api.atlasacademy.io/nice/CN/war/100"
+  },
+  "fuyuki_x_g": {
+    "id": 93000009,
+    "phase": 1,
+    "name": "危险地带",
+    "spot": "未确认坐标Ｘ－Ｇ",
+    "war": "特异点F 燃烧污染都市 冬木",
+    "source": "https://api.atlasacademy.io/nice/CN/war/100"
+  },
+  "orleans_la_charite": {
+    "id": 93000103,
+    "phase": 3,
+    "name": "卢瓦尔河畔",
+    "spot": "拉沙里泰",
+    "war": "第一特异点 邪龙百年战争 奥尔良",
+    "source": "https://api.atlasacademy.io/nice/CN/war/101"
+  },
+  "orleans_domremy": {
+    "id": 93000101,
+    "phase": 3,
+    "name": "贞德诞生之地",
+    "spot": "栋雷米",
+    "war": "第一特异点 邪龙百年战争 奥尔良",
+    "source": "https://api.atlasacademy.io/nice/CN/war/101"
+  },
+  "orleans_jura": {
+    "id": 93000104,
+    "phase": 3,
+    "name": "太古之森",
+    "spot": "汝拉",
+    "war": "第一特异点 邪龙百年战争 奥尔良",
+    "source": "https://api.atlasacademy.io/nice/CN/war/101"
+  },
+  "orleans_bordeaux": {
+    "id": 93000110,
+    "phase": 3,
+    "name": "美酒，干杯",
+    "spot": "波尔多",
+    "war": "第一特异点 邪龙百年战争 奥尔良",
+    "source": "https://api.atlasacademy.io/nice/CN/war/101"
+  },
+  "orleans_orleans": {
+    "id": 93000107,
+    "phase": 3,
+    "name": "命运的堡垒",
+    "spot": "奥尔良",
+    "war": "第一特异点 邪龙百年战争 奥尔良",
+    "source": "https://api.atlasacademy.io/nice/CN/war/101"
+  },
+  "septem_appia": {
+    "id": 93000201,
+    "phase": 3,
+    "name": "街道女王",
+    "spot": "亚壁街道",
+    "war": "第二特异点 永续狂气帝国 七丘之城",
+    "source": "https://api.atlasacademy.io/nice/CN/war/102"
+  },
+  "septem_massilia": {
+    "id": 93000205,
+    "phase": 3,
+    "name": "远古的港口",
+    "spot": "马西利亚",
+    "war": "第二特异点 永续狂气帝国 七丘之城",
+    "source": "https://api.atlasacademy.io/nice/CN/war/102",
+    "spot_free_quest_count": 1
+  },
+  "septem_capital": {
+    "id": 93000208,
+    "phase": 3,
+    "name": "罗马的地平线",
+    "spot": "联军首都",
+    "war": "第二特异点 永续狂气帝国 七丘之城",
+    "source": "https://api.atlasacademy.io/nice/CN/war/102"
+  },
+  "septem_etna": {
+    "id": 93000209,
+    "phase": 3,
+    "name": "沸腾的大地",
+    "spot": "埃特纳火山",
+    "war": "第二特异点 永续狂气帝国 七丘之城",
+    "source": "https://api.atlasacademy.io/nice/CN/war/102"
+  },
+  "okeanos_pirate_ship": {
+    "id": 93000301,
+    "phase": 3,
+    "name": "私掠船团",
+    "spot": "海盗船",
+    "war": "第三特异点 封锁终局四海 俄刻阿诺斯",
+    "source": "https://api.atlasacademy.io/nice/CN/war/103"
+  },
+  "london_old_street": {
+    "id": 93000401,
+    "phase": 3,
+    "name": "浓雾，马车与瓦斯灯",
+    "spot": "旧街",
+    "war": "第四特异点 死界魔雾都市 伦敦",
+    "source": "https://api.atlasacademy.io/nice/CN/war/104"
+  },
+  "america_charlotte": {
+    "id": 93000512,
+    "phase": 3,
+    "name": "淘金热",
+    "spot": "夏洛特",
+    "war": "第五特异点 北美神话大战 合众为一",
+    "source": "https://api.atlasacademy.io/nice/CN/war/105"
+  },
+  "daily_qp_extreme": {
+    "id": 94061640,
+    "phase": 1,
+    "name": "打开宝物库之门 极级",
+    "spot": "每日任务",
+    "war": "迦勒底之门",
+    "source": "https://api.atlasacademy.io/nice/CN/war/1002"
+  },
+  "daily_training_archer": {
+    "id": 94066101,
+    "phase": 1,
+    "name": "每日替换 弓之修炼场 极级",
+    "spot": "每日任务",
+    "war": "迦勒底之门",
+    "source": "https://api.atlasacademy.io/nice/CN/war/1002"
+  },
+  "daily_training_lancer": {
+    "id": 94066102,
+    "phase": 1,
+    "name": "每日替换 枪之修炼场 极级",
+    "spot": "每日任务",
+    "war": "迦勒底之门",
+    "source": "https://api.atlasacademy.io/nice/CN/war/1002"
+  },
+  "daily_training_berserker": {
+    "id": 94066103,
+    "phase": 1,
+    "name": "每日替换 狂之修炼场 极级",
+    "spot": "每日任务",
+    "war": "迦勒底之门",
+    "source": "https://api.atlasacademy.io/nice/CN/war/1002"
+  },
+  "daily_training_rider": {
+    "id": 94066104,
+    "phase": 1,
+    "name": "每日替换 骑之修炼场 极级",
+    "spot": "每日任务",
+    "war": "迦勒底之门",
+    "source": "https://api.atlasacademy.io/nice/CN/war/1002"
+  },
+  "daily_training_caster": {
+    "id": 94066105,
+    "phase": 1,
+    "name": "每日替换 术之修炼场 极级",
+    "spot": "每日任务",
+    "war": "迦勒底之门",
+    "source": "https://api.atlasacademy.io/nice/CN/war/1002"
+  },
+  "daily_training_assassin": {
+    "id": 94066106,
+    "phase": 1,
+    "name": "每日替换 暗之修炼场 极级",
+    "spot": "每日任务",
+    "war": "迦勒底之门",
+    "source": "https://api.atlasacademy.io/nice/CN/war/1002"
+  },
+  "daily_training_saber": {
+    "id": 94066107,
+    "phase": 1,
+    "name": "每日替换 剑之修炼场 极级",
+    "spot": "每日任务",
+    "war": "迦勒底之门",
+    "source": "https://api.atlasacademy.io/nice/CN/war/1002"
+  }
+}

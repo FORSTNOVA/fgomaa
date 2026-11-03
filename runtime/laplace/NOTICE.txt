@@ -1,0 +1,6 @@
+Chaldea Laplace battle engine
+Upstream: https://github.com/chaldea-center/chaldea
+Commit: 9970a57a7d150d5d551f583f6b2c4862a9f7e798
+License: AGPL-3.0 (see licenses). Corresponding Chaldea source and local Dart adapter are in sources/.
+Flutter engine and third-party dependency notices are preserved in licenses/ and assets/NOTICES.Z.
+Build: python scripts/build_laplace.py --source <prepared Chaldea checkout>

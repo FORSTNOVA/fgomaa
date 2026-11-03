@@ -1,0 +1,446 @@
+[
+  {
+    "id": "fuyuki_x_a",
+    "war": "特异点F 燃烧污染都市 冬木",
+    "spot": "未确认坐标X-A",
+    "name": "屋顶的目标",
+    "ap": 3,
+    "enemies_count": 3,
+    "traits": {
+      "undead": 3,
+      "saber": 3,
+      "human": 3,
+      "demonic": 3,
+      "quest_clears": 1,
+      "drops": 2
+    }
+  },
+  {
+    "id": "fuyuki_x_b",
+    "war": "特异点F 燃烧污染都市 冬木",
+    "spot": "未确认坐标X-B",
+    "name": "灰烬的遗迹",
+    "ap": 4,
+    "enemies_count": 5,
+    "traits": {
+      "undead": 5,
+      "saber": 3,
+      "human": 5,
+      "demonic": 5,
+      "lancer": 2,
+      "quest_clears": 1,
+      "drops": 3
+    }
+  },
+  {
+    "id": "fuyuki_x_c",
+    "war": "特异点F 燃烧污染都市 冬木",
+    "spot": "未确认坐标X-C",
+    "name": "焦土之壁",
+    "ap": 4,
+    "enemies_count": 7,
+    "traits": {
+      "undead": 7,
+      "saber": 4,
+      "human": 7,
+      "demonic": 7,
+      "lancer": 3,
+      "quest_clears": 1,
+      "drops": 3
+    }
+  },
+  {
+    "id": "fuyuki_x_d",
+    "war": "特异点F 燃烧污染都市 冬木",
+    "spot": "未确认坐标X-D",
+    "name": "鲜红的街道",
+    "ap": 5,
+    "enemies_count": 8,
+    "traits": {
+      "undead": 8,
+      "saber": 4,
+      "human": 8,
+      "demonic": 8,
+      "archer": 4,
+      "quest_clears": 1,
+      "drops": 5
+    }
+  },
+  {
+    "id": "fuyuki_x_e",
+    "war": "特异点F 燃烧污染都市 冬木",
+    "spot": "未确认坐标X-E",
+    "name": "彷徨的亡灵",
+    "ap": 5,
+    "enemies_count": 7,
+    "traits": {
+      "undead": 6,
+      "saber": 4,
+      "human": 6,
+      "demonic": 6,
+      "archer": 2,
+      "earth": 1,
+      "chaotic": 1,
+      "servant": 1,
+      "rider": 1,
+      "humanoid": 1,
+      "divine": 1,
+      "good": 1,
+      "quest_clears": 1,
+      "drops": 4
+    }
+  },
+  {
+    "id": "fuyuki_x_f",
+    "war": "特异点F 燃烧污染都市 冬木",
+    "spot": "未确认坐标X-F",
+    "name": "燃烧的校舍",
+    "ap": 6,
+    "enemies_count": 8,
+    "traits": {
+      "archer": 3,
+      "undead": 6,
+      "human": 8,
+      "demonic": 6,
+      "saber": 3,
+      "humanoid": 2,
+      "lawful": 1,
+      "evil": 1,
+      "assassin": 1,
+      "servant": 2,
+      "lancer": 1,
+      "chaotic": 1,
+      "good": 1,
+      "quest_clears": 1,
+      "drops": 6
+    }
+  },
+  {
+    "id": "fuyuki_x_g",
+    "war": "特异点F 燃烧污染都市 冬木",
+    "spot": "未确认坐标X-G",
+    "name": "危险的地带",
+    "ap": 15,
+    "enemies_count": 1,
+    "traits": {
+      "chaotic": 1,
+      "servant": 1,
+      "berserker": 1,
+      "insane": 1,
+      "humanoid": 1,
+      "sky": 1,
+      "divine": 1,
+      "quest_clears": 1,
+      "drops": 7
+    }
+  },
+  {
+    "id": "orleans_la_charite",
+    "war": "第一特异点 邪龙百年战争 奥尔良",
+    "spot": "拉沙里泰",
+    "name": "苍色的原野",
+    "ap": 7,
+    "enemies_count": 8,
+    "traits": {
+      "lancer": 2,
+      "humanoid": 2,
+      "undead": 2,
+      "human": 2,
+      "demonic": 2,
+      "earth": 6,
+      "rider": 6,
+      "dragon": 6,
+      "quest_clears": 1,
+      "drops": 5
+    }
+  },
+  {
+    "id": "orleans_domremy",
+    "war": "第一特异点 邪龙百年战争 奥尔良",
+    "spot": "栋雷米",
+    "name": "圣女的诞生之地",
+    "ap": 7,
+    "enemies_count": 7,
+    "traits": {
+      "lancer": 2,
+      "humanoid": 7,
+      "human": 7,
+      "saber": 5,
+      "quest_clears": 1,
+      "drops": 5
+    }
+  },
+  {
+    "id": "orleans_jura",
+    "war": "第一特异点 邪龙百年战争 奥尔良",
+    "spot": "汝拉",
+    "name": "太古的森林",
+    "ap": 7,
+    "enemies_count": 8,
+    "traits": {
+      "wildbeast": 5,
+      "earth": 7,
+      "humanoid": 6,
+      "saber": 2,
+      "demonic": 5,
+      "lancer": 2,
+      "assassin": 1,
+      "rider": 3,
+      "lawful": 1,
+      "divine": 1,
+      "servant": 1,
+      "human": 1,
+      "good": 1,
+      "dragon": 2,
+      "quest_clears": 1,
+      "drops": 6
+    }
+  },
+  {
+    "id": "orleans_bordeaux",
+    "war": "第一特异点 邪龙百年战争 奥尔良",
+    "spot": "波尔多",
+    "name": "红酒与干杯",
+    "ap": 7,
+    "enemies_count": 8,
+    "traits": {
+      "wildbeast": 8,
+      "earth": 8,
+      "lancer": 4,
+      "humanoid": 8,
+      "demonic": 8,
+      "saber": 1,
+      "assassin": 3,
+      "quest_clears": 1,
+      "drops": 7
+    }
+  },
+  {
+    "id": "orleans_orleans",
+    "war": "第一特异点 邪龙百年战争 奥尔良",
+    "spot": "奥尔良",
+    "name": "命运的要塞",
+    "ap": 8,
+    "enemies_count": 6,
+    "traits": {
+      "lancer": 2,
+      "undead": 2,
+      "human": 3,
+      "demonic": 2,
+      "earth": 3,
+      "rider": 3,
+      "dragon": 3,
+      "chaotic": 1,
+      "humanoid": 1,
+      "evil": 1,
+      "caster": 1,
+      "servant": 1,
+      "quest_clears": 1,
+      "drops": 6
+    }
+  },
+  {
+    "id": "septem_appia",
+    "war": "第二特异点 永续狂气帝国 七丘之城",
+    "spot": "亚壁街道",
+    "name": "条条大路通罗马",
+    "ap": 9,
+    "enemies_count": 9,
+    "traits": {
+      "humanoid": 9,
+      "saber": 3,
+      "human": 9,
+      "roman": 9,
+      "archer": 3,
+      "lancer": 2,
+      "chaotic": 1,
+      "king": 1,
+      "evil": 1,
+      "servant": 1,
+      "berserker": 1,
+      "quest_clears": 1,
+      "drops": 7
+    }
+  },
+  {
+    "id": "septem_capital",
+    "war": "第二特异点 永续狂气帝国 七丘之城",
+    "spot": "联合首都",
+    "name": "罗马的荣耀",
+    "ap": 10,
+    "enemies_count": 6,
+    "traits": {
+      "sky": 2,
+      "berserker": 3,
+      "humanoid": 4,
+      "archer": 2,
+      "human": 4,
+      "roman": 3,
+      "saber": 1,
+      "balance": 1,
+      "king": 1,
+      "lawful": 1,
+      "servant": 1,
+      "quest_clears": 1,
+      "drops": 5
+    }
+  },
+  {
+    "id": "septem_etna",
+    "war": "第二特异点 永续狂气帝国 七丘之城",
+    "spot": "埃特纳火山",
+    "name": "沸腾的大地",
+    "ap": 9,
+    "enemies_count": 7,
+    "traits": {
+      "sky": 7,
+      "undead": 7,
+      "assassin": 7,
+      "demonic": 7,
+      "quest_clears": 1,
+      "drops": 6
+    }
+  },
+  {
+    "id": "okeanos_pirate_ship",
+    "war": "第三特异点 封锁终局四海 俄刻阿诺斯",
+    "spot": "海盗船",
+    "name": "掠夺的航海",
+    "ap": 12,
+    "enemies_count": 9,
+    "traits": {
+      "humanoid": 9,
+      "archer": 5,
+      "human": 9,
+      "saber": 4,
+      "quest_clears": 1,
+      "drops": 7
+    }
+  },
+  {
+    "id": "okeanos_tidal_island",
+    "war": "第三特异点 封锁终局四海 俄刻阿诺斯",
+    "spot": "潮风之岛",
+    "name": "静谧的浅滩",
+    "ap": 13,
+    "enemies_count": 8,
+    "traits": {
+      "earth": 8,
+      "dragon": 7,
+      "wildbeast": 1,
+      "demonic": 1,
+      "rider": 7,
+      "berserker": 1,
+      "drops": 7,
+      "quest_clears": 1
+    }
+  },
+  {
+    "id": "london_scotland_yard",
+    "war": "第四特异点 死界魔雾都市 伦敦",
+    "spot": "苏格兰场",
+    "name": "雾中的警笛",
+    "ap": 15,
+    "enemies_count": 9,
+    "traits": {
+      "mechanical": 9,
+      "humanoid": 9,
+      "archer": 9,
+      "drops": 8,
+      "quest_clears": 1
+    }
+  },
+  {
+    "id": "london_old_street",
+    "war": "第四特异点 死界魔雾都市 伦敦",
+    "spot": "老街",
+    "name": "雾气的深处",
+    "ap": 15,
+    "enemies_count": 7,
+    "traits": {
+      "mechanical": 7,
+      "sky": 7,
+      "assassin": 7,
+      "quest_clears": 1,
+      "drops": 8
+    }
+  },
+  {
+    "id": "america_charlotte",
+    "war": "第五特异点 北美神话大战 合众为一",
+    "spot": "夏洛特",
+    "name": "金矿",
+    "ap": 20,
+    "enemies_count": 9,
+    "traits": {
+      "humanoid": 9,
+      "archer": 2,
+      "human": 9,
+      "caster": 1,
+      "balance": 3,
+      "neutral": 1,
+      "servant": 4,
+      "roman": 1,
+      "berserker": 3,
+      "chaotic": 2,
+      "king": 2,
+      "lancer": 3,
+      "lawful": 1,
+      "mechanical": 1,
+      "evil": 1,
+      "quest_clears": 1,
+      "drops": 9
+    }
+  },
+  {
+    "id": "daily_qp_extreme",
+    "war": "迦勒底之门",
+    "spot": "宝物库",
+    "name": "打开宝物库之门 极级",
+    "ap": 40,
+    "enemies_count": 9,
+    "traits": {
+      "sky": 9,
+      "demonic": 9,
+      "caster": 9,
+      "drops": 9,
+      "quest_clears": 1
+    }
+  },
+  {
+    "id": "daily_exp_extreme",
+    "war": "迦勒底之门",
+    "spot": "种火收集",
+    "name": "种火收集 极级",
+    "ap": 40,
+    "enemies_count": 9,
+    "traits": {
+      "sky": 9,
+      "drops": 9,
+      "quest_clears": 1
+    }
+  },
+  {
+    "id": "septem_massilia",
+    "war": "第二特异点 永续狂气帝国 七丘之城",
+    "spot": "马西利亚",
+    "name": "远古的港口",
+    "ap": 9,
+    "enemies_count": 6,
+    "traits": {
+      "humanoid": 6,
+      "saber": 2,
+      "human": 6,
+      "roman": 5,
+      "lancer": 2,
+      "rider": 1,
+      "king": 1,
+      "neutral": 2,
+      "servant": 2,
+      "good": 1,
+      "balance": 1,
+      "berserker": 1,
+      "quest_clears": 1
+    }
+  }
+]

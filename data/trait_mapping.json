@@ -1,0 +1,62 @@
+{
+  "attributes": {
+    "天": "sky",
+    "地": "earth",
+    "人": "human",
+    "星": "star",
+    "兽": "beast"
+  },
+  "alignments": {
+    "秩序": "lawful",
+    "中立": "neutral",
+    "混沌": "chaotic",
+    "善": "good",
+    "中庸": "balance",
+    "恶": "evil",
+    "狂": "insane"
+  },
+  "classes": {
+    "剑": "saber",
+    "剑阶": "saber",
+    "Saber": "saber",
+    "弓": "archer",
+    "弓阶": "archer",
+    "Archer": "archer",
+    "枪": "lancer",
+    "枪阶": "lancer",
+    "Lancer": "lancer",
+    "骑": "rider",
+    "骑阶": "rider",
+    "Rider": "rider",
+    "术": "caster",
+    "术阶": "caster",
+    "Caster": "caster",
+    "杀": "assassin",
+    "杀阶": "assassin",
+    "Assassin": "assassin",
+    "狂": "berserker",
+    "狂阶": "berserker",
+    "Berserker": "berserker"
+  },
+  "traits": {
+    "从者": "servant",
+    "从者(除拟似/亚种外)": "servant",
+    "魔性": "demonic",
+    "死灵": "undead",
+    "龙": "dragon",
+    "猛兽": "wildbeast",
+    "野兽": "wildbeast",
+    "人型": "humanoid",
+    "机械": "mechanical",
+    "罗马": "roman",
+    "神性": "divine",
+    "超巨大": "super_giant",
+    "鬼": "oni",
+    "浮空": "floating",
+    "王": "king"
+  },
+  "meta": {
+    "战利品": "drops",
+    "完成关卡": "quest_clears"
+  }
+}

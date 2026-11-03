@@ -1,0 +1,31 @@
+# FGO MAA 自动化配置文件
+
+emulator:
+  adb_path: "adb"                       # ADB 路径，如果在 PATH 中可直接填 adb
+  address: "127.0.0.1:16384"            # 模拟器连接地址 (例如 MuMu 12 为 16384，雷电为 5555 等)
+
+daily:
+  story_free_summon: true               # 是否自动进行每日剧情常驻池免费单抽
+  summon_free_fp: true                  # 是否自动进行每日免费友情池 10 连
+  default_quest: "daily_qp_extreme"     # 日常默认消耗 AP 关卡: daily_qp_extreme (QP极级) / daily_exp_extreme (种火极级)
+  quest_runs: 3                         # 每日打本次数 (完成日常 3 次通关任务)
+  claim_master_missions: true           # 打完是否自动领取每日御主任务奖励 (30绿方块)
+
+weekly:
+  enable_smart_solver: true             # 是否启用智能周常求解器自动算最低 AP 路线
+  auto_execute: true                    # 求解出路线后是否自动导航去打
+  allowed_wars:                         # 允许用于周常求解的章节范围 (默认开放前几个低耗特异点)
+    - "冬木"
+    - "奥尔良"
+    - "七丘之城"
+    - "俄刻阿诺斯"
+
+support:
+  preferred_servants:                   # 优先寻找的助战从者
+    - "阿尔托莉雅·Caster"
+    - "光之高扬斯卡娅"
+    - "奥伯龙"
+  preferred_ces:                        # 优先寻找的助战礼装
+    - "下午茶时间"
+    - "贝拉·丽莎"
+  max_refreshes: 3                      # 助战列表最大刷新次数

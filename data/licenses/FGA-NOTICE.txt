@@ -1,0 +1,21 @@
+FGO-MAA AP recovery reference
+
+The AP recovery workflow was reviewed against Fate/Grand Automata (FGA),
+commit e3fa1056aabb9edbc374e95f7b53177261ac84d1:
+https://github.com/Fate-Grand-Automata/FGA
+scripts/src/main/java/io/github/fate_grand_automata/scripts/modules/Refill.kt
+scripts/src/main/java/io/github/fate_grand_automata/scripts/locations/Locations.kt
+
+The local Python implementation follows the idea of recognizing a restricted
+screen region before performing a recovery action. Multi-use behavior was also
+reviewed in the FGA Preview documentation:
+https://arthurkun21.github.io/FGA-Preview-Build/scripts/in-battle/resources/energy-refill/
+
+FGA is MIT licensed; its original notice is retained in FGA-LICENSE.txt.
+No Android accessibility service or Kotlin runtime is integrated.
+The quantity-plus image is cropped from this project's verified CN emulator
+screenshot, not copied from FGA. AP-gap calculation, quantity acknowledgements,
+inventory checks and pending-use reservations are local FGO-MAA logic.
+
+Resource naming differs: FGA Copper corresponds to FGO-MAA bronze
+(赤铜果实, 10 AP); FGA Bronze corresponds to FGO-MAA blue (青铜果实, 40 AP).

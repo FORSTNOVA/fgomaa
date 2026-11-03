@@ -1,0 +1,17 @@
+{
+  "war_id": 9195,
+  "event_id": 80580,
+  "source": "https://static.atlasacademy.io/CN/Terminal/MapImgs/img_questmap_009195/img_questmap_009195.png",
+  "source_sha256": "72ad005ca681586b08876eff05c2c69663b0ed63261042825d5a54664844b82b",
+  "reference_size": [
+    1024,
+    1024
+  ],
+  "algorithm": "OpenCV SIFT; 256px grid; 20px context; nfeatures=160 per cell",
+  "points": 1577,
+  "feature_sha256": "6ce6c4bdc08f2294f9c4e0e42d70dcf5b64db056edc7c23e993561c9f151d2fe",
+  "source_image_size": [
+    2048,
+    2048
+  ]
+}

@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FGO MAA Assistant - 现代化智能自动化客户端</title>
+  <style>
+    :root {
+      --bg-dark: #0d1117;
+      --bg-panel: #161b22;
+      --bg-card: rgba(30, 36, 50, 0.7);
+      --bg-card-hover: rgba(38, 46, 64, 0.9);
+      --border-color: #30363d;
+      --text-main: #f0f6fc;
+      --text-muted: #8b949e;
+      --accent-green: #238636;
+      --accent-green-hover: #2ea043;
+      --accent-cyan: #38bdf8;
+      --accent-purple: #a855f7;
+      --accent-amber: #e3b341;
+      --accent-red: #da3633;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+    body { background-color: var(--bg-dark); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; }
+
+    /* 侧边栏 */
+    .sidebar {
+      width: 240px;
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    .logo-container {
+      padding: 20px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo-badge {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #10b981, #06b6d4);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 18px;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+    .logo-text h1 { font-size: 17px; font-weight: 700; color: #fff; }
+    .logo-text p { font-size: 11px; color: var(--text-muted); }
+
+    .device-pill {
+      margin: 14px 16px;
+      padding: 8px 12px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .device-pill:hover { background: rgba(16, 185, 129, 0.2); }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: #10b981;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #10b981;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+
+    .nav-list { list-style: none; padding: 8px 12px; flex: 1; overflow-y: auto; }
+    .nav-item {
+      padding: 12px 14px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 4px;
+    }
+    .nav-item:hover { background: rgba(255, 255, 255, 0.05); color: #fff; }
+    .nav-item.active { background: rgba(56, 189, 248, 0.15); color: var(--accent-cyan); font-weight: 600; }
+    .nav-item svg { width: 18px; height: 18px; fill: currentColor; }
+
+    .sidebar-footer { padding: 16px; border-top: 1px solid var(--border-color); }
+    .start-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #238636, #2ea043);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(35, 134, 54, 0.4);
+      transition: all 0.2s;
+    }
+    .start-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(35, 134, 54, 0.5); }
+    .start-btn:active { transform: translateY(1px); }
+    .start-btn.running { background: linear-gradient(135deg, #da3633, #f85149); box-shadow: 0 4px 14px rgba(218, 54, 51, 0.4); }
+
+    /* 主内容区 */
+    .main-container {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+    .content-area {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    .section-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+    .section-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+
+    /* 卡片组 */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-bottom: 16px;
+      backdrop-filter: blur(8px);
+    }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .card-title { font-size: 15px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 8px; }
+
+    /* 表单与勾选框 */
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      cursor: pointer;
+    }
+    .checkbox-item:last-child { border-bottom: none; }
+    .checkbox-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent-cyan); cursor: pointer; }
+    .checkbox-label { flex: 1; font-size: 14px; }
+    .checkbox-desc { font-size: 12px; color: var(--text-muted); }
+    .first-clear-controls { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 20px; margin:14px 0; }
+    .first-clear-control { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .first-clear-control label { display:inline-flex; align-items:center; gap:7px; }
+    .first-clear-control input[type="checkbox"] { width:18px; height:18px; accent-color:var(--accent-cyan); cursor:pointer; }
+    .first-clear-control input[type="number"] { width:80px; background:#0d1117; color:#fff; border:1px solid var(--border-color); border-radius:6px; padding:6px 9px; }
+    .first-clear-control :disabled { opacity:.45; cursor:not-allowed; }
+    @media(max-width:760px) { .first-clear-controls { grid-template-columns:1fr; } }
+
+    .select-control {
+      background: #0d1117;
+      border: 1px solid var(--border-color);
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+    }
+
+    /* 右侧视讯与工作台 */
+    .workbench {
+      width: 420px;
+      background: var(--bg-panel);
+      border-left: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    .preview-box {
+      padding: 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .screen-img {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      object-fit: contain;
+      display: block;
+    }
+
+    .log-box {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+      overflow: hidden;
+    }
+    .log-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .log-terminal {
+      flex: 1;
+      background: #090d13;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      overflow-y: auto;
+      color: #c9d1d9;
+    }
+    .log-line { margin-bottom: 4px; word-break: break-all; }
+    .log-time { color: var(--text-muted); margin-right: 6px; }
+    .log-info { color: #58a6ff; }
+    .log-success { color: #3fb950; font-weight: 600; }
+    .log-error { color: #f85149; font-weight: 600; }
+
+    /* 按钮组 */
+    .btn {
+      padding: 8px 14px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:hover { background: rgba(255, 255, 255, 0.1); }
+    .btn-primary { background: var(--accent-cyan); color: #000; font-weight: 600; border: none; }
+    .btn-primary:hover { background: #7dd3fc; }
+
+    /* 从者与周常卡片 */
+    .grid-supports { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .support-card {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+    .support-nick { font-weight: 700; font-size: 14px; color: var(--accent-cyan); margin-bottom: 4px; }
+    .support-skills { font-size: 12px; color: #fff; }
+    .support-append { font-size: 11px; color: var(--accent-green); margin-top: 4px; }
+
+    .route-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 6px;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <div class="logo-container">
+      <div class="logo-badge">M</div>
+      <div class="logo-text">
+        <h1>FGO MAA</h1>
+        <p>Assistant v1.0.0 (MFAW)</p>
+      </div>
+    </div>
+
+    <!-- 设备状态指示 -->
+    <div class="device-pill" onclick="refreshDevices()" title="点击刷新连接状态">
+      <div class="status-dot"></div>
+      <span id="device-label">正在连接模拟器...</span>
+    </div>
+
+    <!-- 导航标签 -->
+    <ul class="nav-list">
+      <li class="nav-item active" onclick="switchTab('daily')">
+        <svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/></svg>
+        一键日常 (Daily)
+      </li>
+      <li class="nav-item" onclick="switchTab('weekly')">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+        智能周常 (Weekly)
+      </li>
+      <li class="nav-item" onclick="switchTab('quests')">
+        <svg viewBox="0 0 24 24"><path d="M4 3h16v18H4V3zm3 4v2h10V7H7zm0 4v2h10v-2H7zm0 4v2h7v-2H7z"/></svg>
+        自动推关 (Quests)
+      </li>
+      <li class="nav-item" onclick="switchTab('teams')">
+        <svg viewBox="0 0 24 24"><path d="M14 6l-3.75 5 2.85 3.8-1.6 1.2C9.81 13.75 7 10 7 10l-6 8h22L14 6z"/></svg>
+        3T 战斗预设 (Combat)
+      </li>
+      <li class="nav-item" onclick="switchTab('chaldea')">
+        <svg viewBox="0 0 24 24"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg>
+        迦勒底从者库 (Chaldea)
+      </li>
+      <li class="nav-item" onclick="switchTab('settings')">
+        <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+        设置与连接 (Settings)
+      </li>
+    </ul>
+
+    <!-- 底部悬浮控制按键 -->
+    <div class="sidebar-footer">
+      <button class="start-btn" id="main-action-btn" onclick="triggerMainAction()">
+        <svg style="width: 20px; height: 20px;" viewBox="0 0 24 24"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+        <span id="main-btn-text">一键启动日常</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- 中间主要操作区 -->
+  <main class="main-container">
+    <div class="content-area">
+
+      <!-- Tab 1: 一键日常 -->
+      <div id="tab-daily" class="tab-content active">
+        <h2 class="section-title">📅 一键日常自动化配置</h2>
+        <p class="section-desc">串联剧情常驻卡池每日免费单抽、免费友情十连、3 次 AP 副本及每日 30 绿方块奖励一键领取。</p>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">日常任务执行清单</span>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="daily-story-summon" checked>
+            <div class="checkbox-label">
+              <div>每日剧情常驻卡池免费单抽</div>
+              <div class="checkbox-desc">导航至常驻剧情卡池抽取每日免费 1 次圣晶石召唤并跳过动画</div>
+            </div>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="daily-fp" checked>
+            <div class="checkbox-label">
+              <div>每日免费友情召唤 (10连)</div>
+              <div class="checkbox-desc">导航至友情点卡池抽取每日免费 10 次召唤并跳过动画</div>
+            </div>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="daily-quest" checked>
+            <div class="checkbox-label">
+              <div>每日体力消耗 (完成日常 3 次打本)</div>
+              <div class="checkbox-desc">指定关卡有 AP 减免时刷该关卡；否则改刷最低 AP 自由关卡，共 3 次</div>
+            </div>
+            <select class="select-control" id="daily-quest-type" onchange="loadAutoTeam(this.value)">
+              <option value="daily_qp_extreme">打开宝物库之门 (QP极级 - 敌方:术阶)</option>
+              <option value="daily_exp_extreme">种火收集 (极级狗粮 - 敌方:狂/混合)</option>
+              <option value="daily_training_saber">剑之修炼场 (极级 - 敌方:剑阶)</option>
+              <option value="daily_training_archer">弓之修炼场 (极级 - 敌方:弓阶)</option>
+              <option value="daily_training_lancer">枪之修炼场 (极级 - 敌方:枪阶)</option>
+              <option value="daily_training_rider">骑之修炼场 (极级 - 敌方:骑阶)</option>
+              <option value="daily_training_caster">术之修炼场 (极级 - 敌方:术阶)</option>
+              <option value="daily_training_assassin">杀之修炼场 (极级 - 敌方:杀阶)</option>
+              <option value="daily_training_berserker">狂之修炼场 (极级 - 敌方:狂阶)</option>
+            </select>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="daily-reward" checked>
+            <div class="checkbox-label">
+              <div>一键领取每日御主任务奖励</div>
+              <div class="checkbox-desc">自动前往御主任务面板一键领取 30 个魔术方块(绿方块)</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">🧠 智能自配队引擎 (随目标关卡敌方职阶与账号拐练度实时变阵)</span>
+            <div style="display: flex; gap: 6px;">
+              <button class="btn btn-primary" style="padding: 4px 10px; font-size: 12px;" onclick="switchTab('chaldea')">📡 抓包 / 采集账户</button>
+              <button class="btn" style="padding: 4px 10px; font-size: 12px;" onclick="document.getElementById('chaldea-file-input').click()">📂 导入 JSON/HAR</button>
+            </div>
+          </div>
+          <div id="daily-auto-team-preview" style="font-size: 13px; color: var(--text-muted); line-height: 1.7;">
+            正在根据账户数据与当前目标关卡计算最优配队...
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: 智能周常 -->
+      <div id="tab-weekly" class="tab-content">
+        <h2 class="section-title">🧭 智能周常最少 AP 规划器</h2>
+        <p class="section-desc">基于 Atlas Academy 解包关卡库，采用运筹学整数线性规划 (ILP) 求解全局耗费 AP 最少的周常通关方案。</p>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">本周御主任务目标</span>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-primary" onclick="solveWeekly(true)">📸 实机 OCR 扫描并求解</button>
+              <button class="btn" onclick="solveWeekly(false)">一键使用标准预设</button>
+            </div>
+          </div>
+          <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
+            支持点击【📸 实机 OCR 扫描并求解】自动导航到游戏内任务面板，利用 RapidOCR 识别本周任务并 10ms 输出最低 AP 路线！
+          </div>
+          <div id="weekly-plan-results" style="display: none;">
+            <div style="display: flex; gap: 16px; margin-bottom: 14px;">
+              <div style="padding: 10px 16px; background: rgba(35, 134, 54, 0.2); border-radius: 8px; border: 1px solid rgba(35, 134, 54, 0.4);">
+                <div style="font-size: 11px; color: var(--text-muted);">最优总消耗 AP</div>
+                <div style="font-size: 20px; font-weight: 800; color: #3fb950;" id="plan-total-ap">16 AP</div>
+              </div>
+              <div style="padding: 10px 16px; background: rgba(56, 189, 248, 0.2); border-radius: 8px; border: 1px solid rgba(56, 189, 248, 0.4);">
+                <div style="font-size: 11px; color: var(--text-muted);">总战斗场次</div>
+                <div style="font-size: 20px; font-weight: 800; color: var(--accent-cyan);" id="plan-total-runs">3 场</div>
+              </div>
+            </div>
+            <div id="plan-routes-list"></div>
+            <button class="btn btn-primary" style="margin-top: 14px; width: 100%; padding: 12px;" onclick="runWeekly()">一键执行此周常方案 (自动导航打本+领石头)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: 3T 战斗预设 -->
+      <div id="tab-quests" class="tab-content">
+        <h2 class="section-title">🧭 自动推关</h2>
+        <p class="section-desc">自选关卡队列，按敌人配置和账号练度配队，模拟通过后自动编队、核对礼装并战斗。</p>
+        <label>目标设备 <select id="quest-device" class="select-control" aria-label="目标设备" onchange="loadFirstClearCandidates()"></select></label>
+        <div class="card" style="margin-top:16px">
+          <div class="card-title">未通关自由／活动周回关卡 · 自动首通</div>
+          <p class="section-desc">自动按AP从低到高选择已解锁的普通自由关卡。每阶段核对实机进度，重新模拟、配队、装备并战斗；确认整关完成后再选下一关。苹果恢复默认关闭；赤铜按当前关卡的AP缺口一次选足个数，受本次道具个数上限和AP预算限制。上限或库存不足以补足时停止，不消耗不足的一批。</p>
+          <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:12px">
+            <label>章节 <select id="first-clear-war" class="select-control" onchange="loadFirstClearCandidates()"><option value="">全部已适配章节</option></select></label>
+          </div>
+          <div class="first-clear-controls" id="first-clear-controls">
+            <div class="first-clear-control">
+              <label><input id="first-clear-limit-enabled" type="checkbox" checked onchange="updateFirstClearControls()"> 最多完成</label>
+              <input id="first-clear-limit" type="number" min="1" max="30" value="3" aria-label="首通关卡数量"><span>关</span>
+              <span id="first-clear-limit-off" class="checkbox-desc" hidden>不限关数</span>
+            </div>
+            <div class="first-clear-control">
+              <label><input id="first-clear-ap-enabled" type="checkbox" checked onchange="updateFirstClearControls()"> AP预算</label>
+              <input id="first-clear-ap" type="number" min="1" max="999" value="100" aria-label="首通AP预算">
+              <span id="first-clear-ap-off" class="checkbox-desc" hidden>不限AP预算</span>
+            </div>
+            <div class="first-clear-control">
+              <label><input id="first-clear-refill-enabled" type="checkbox" onchange="updateFirstClearControls()"> 体力恢复</label>
+              <select id="first-clear-apple" class="select-control" disabled aria-label="苹果种类"><option value="bronze">赤铜苹果（10 AP）</option><option value="blue">青铜苹果（40 AP）</option><option value="silver">白银苹果（半管AP）</option><option value="gold">黄金苹果（一管AP）</option></select>
+            </div>
+            <div class="first-clear-control">
+              <label><input id="first-clear-apples-enabled" type="checkbox" checked disabled onchange="updateFirstClearControls()"> 最多使用</label>
+              <input id="first-clear-apples" type="number" min="1" max="999" value="1" disabled aria-label="苹果使用上限"><span>个</span>
+              <span id="first-clear-apples-off" class="checkbox-desc" hidden>不限果实个数</span>
+            </div>
+          </div>
+          <p class="checkbox-desc">取消勾选某个上限即不限。AP预算关闭后仍检查实际体力；体力不足且无法恢复时停止。开关按开始任务时的设置生效。</p>
+          <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:12px">
+            <button class="btn" onclick="loadFirstClearCandidates()">刷新候选</button>
+            <button class="btn btn-primary" onclick="startFirstClear()">开始自动首通</button>
+          </div>
+          <div id="first-clear-candidates" style="white-space:pre-wrap;font-size:13px;line-height:1.7;margin-top:12px">正在读取首通候选…</div>
+        </div>
+        <div class="card">
+          <div class="card-title">添加关卡</div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px">
+            <button id="quest-sync-button" class="btn" onclick="refreshQuestDatabase()">全量刷新关卡库</button>
+            <span id="quest-sync-status" style="font-size:12px;color:var(--text-muted)">正在读取关卡库状态…</span>
+          </div>
+          <p class="section-desc" style="margin-top:10px">目录自动同步国服全部章节与关卡，每24小时检查更新。当前支持已通关自由关卡、日常本和万圣节2026普通活动周回本；可按“活动关卡”筛选。未通关的已开放普通本使用上方自动首通，活动剧情需先手动解锁。未开放、体力不足或验证失败时停止。</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+            <select id="quest-kind" class="select-control" aria-label="关卡类型" onchange="filterQuestChoices()">
+              <option value="all">全部类型</option><option value="free">自由关卡</option><option value="daily">日常本</option><option value="main">主线剧情</option><option value="event">活动关卡</option>
+            </select>
+            <label style="font-size:13px"><input type="checkbox" id="quest-supported-only" checked onchange="filterQuestChoices()"> 仅显示已适配关卡</label>
+            <input id="quest-search" class="input-control" placeholder="搜索章节、地点或关卡" oninput="filterQuestChoices()" aria-label="搜索关卡">
+            <select id="quest-choice" class="select-control" aria-label="选择关卡" style="max-width:100%"></select>
+            <input id="quest-runs" class="input-control" type="number" min="1" max="100" value="1" aria-label="关卡次数" style="width:80px">
+            <button class="btn btn-primary" onclick="addQuestToQueue()">加入队列</button>
+          </div>
+          <div id="quest-matches" style="font-size:12px;color:var(--text-muted);margin-top:10px"></div>
+          <div id="quest-queue" style="margin-top:16px"></div>
+          <div style="display:flex;gap:10px;margin-top:16px">
+            <button class="btn" onclick="startQuestQueue(true)">仅模拟预览</button>
+            <button class="btn btn-primary" onclick="startQuestQueue(false)">开始自动作战</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">执行进度与方案</div>
+          <div id="quest-progress" style="white-space:pre-wrap;font-size:13px;line-height:1.8;margin-top:12px">请添加关卡；可先进行模拟预览，预览不会操作游戏。</div>
+        </div>
+      </div>
+
+      <div id="tab-teams" class="tab-content">
+        <h2 class="section-title">⚔️ 3T 战斗队伍预设库</h2>
+        <p class="section-desc">出击确认界面自动匹配打手与拐，并按回合指令宏精准释放技能与换人服。</p>
+        <div id="teams-container">正在加载预设...</div>
+      </div>
+
+      <!-- Tab 4: 迦勒底从者库 -->
+      <div id="tab-chaldea" class="tab-content">
+        <h2 class="section-title">📖 迦勒底抓包采集与智能自配队中心</h2>
+        <p class="section-desc">内置 FGO 本地抓包代理与实机画面采集，自动检测拥有的拐数量与技能等级，并根据目标关卡敌人职阶动态决策配队方向与克制打手。</p>
+        <input type="file" id="chaldea-file-input" accept=".json,.har,.txt" style="display: none;" onchange="handleImportAccountJson(event)">
+
+        <div class="card" style="border-color: rgba(56, 189, 248, 0.35);">
+          <div class="card-header">
+            <span class="card-title">📡 内置账户抓包与实机采集控制台</span>
+            <span id="capture-status-badge" style="font-size: 12px; color: var(--text-muted);">抓包未开启 (模拟器直连)</span>
+          </div>
+          <div style="font-size: 12px; color: var(--text-muted); line-height: 1.6; margin-bottom: 12px;">
+            • <b>方式 1（一键代理抓包 + 实机联动）</b>：点击【📡 开启抓包监听】将自动挂载模拟器代理；若从 FGO 标题界面登录进入大厅可截获完整 <code>toplogin</code> 数据包（含全账号从者与概念礼装），若已在终端大厅产生 <code>:443</code> 加密通信也会自动联动实机同步！<br>
+            • <b>方式 2（免重登实机扫描从者 & 礼装）</b>：处于游戏内【队伍编成】、【灵基一览】或【概念礼装】界面时，点击【🔍 实机扫描当前从者与礼装】可直接通过 OCR 采集入库。<br>
+            • <b>方式 3（导入抓包文件）</b>：支持直接导入 <code>.json</code>、<code>.har</code> 或原始 <code>userSvt</code> 报文（自动同时解析从者与概念礼装）。
+          </div>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn btn-primary" id="btn-toggle-capture" onclick="togglePacketCapture()">📡 开启一键抓包监听 (自动挂载模拟器代理)</button>
+            <button class="btn" onclick="scanScreenServants()">🔍 实机扫描当前从者与概念礼装 (免重登)</button>
+            <button class="btn" onclick="document.getElementById('chaldea-file-input').click()">📂 导入抓包文件 (.json / .har)</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">核心辅助拐 (Supports) 持有与充能练度诊断</span>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <span id="chaldea-sync-status" style="font-size: 12px; color: var(--accent-green);">已加载账户数据</span>
+            </div>
+          </div>
+          <div class="grid-supports" id="supports-grid">正在加载...</div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">🎴 已抓取/导入概念礼装库 (Craft Essences - 纳入配队 NP & 回收 & 色卡计算)</span>
+            <span id="chaldea-ce-status" style="font-size: 12px; color: var(--accent-cyan);">正在加载礼装...</span>
+          </div>
+          <div class="grid-supports" id="ces-grid">正在加载...</div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">🎯 关卡敌方克制自配队决策与候选打手评分表</span>
+            <select class="select-control" id="chaldea-quest-sim" onchange="loadAutoTeam(this.value)">
+              <option value="daily_qp_extreme">打开宝物库之门 (敌方: 术阶 Caster)</option>
+              <option value="daily_exp_extreme">种火收集极级 (敌方: 狂阶+混合)</option>
+              <option value="daily_training_saber">剑之修炼场 (敌方: 剑阶 Saber)</option>
+              <option value="daily_training_archer">弓之修炼场 (敌方: 弓阶 Archer)</option>
+              <option value="daily_training_lancer">枪之修炼场 (敌方: 枪阶 Lancer)</option>
+              <option value="daily_training_rider">骑之修炼场 (敌方: 骑阶 Rider)</option>
+              <option value="daily_training_caster">术之修炼场 (敌方: 术阶 Caster)</option>
+              <option value="daily_training_assassin">杀之修炼场 (敌方: 杀阶 Assassin)</option>
+              <option value="daily_training_berserker">狂之修炼场 (敌方: 狂阶 Berserker)</option>
+            </select>
+          </div>
+          <div id="chaldea-auto-team-detail" style="font-size: 13px; line-height: 1.7; color: #c9d1d9;">
+            正在计算最优克制配队...
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 5: 设置 -->
+      <div id="tab-settings" class="tab-content">
+        <h2 class="section-title">⚙️ 设置与连接管理</h2>
+        <p class="section-desc">配置模拟器端口与 ADB 路径。</p>
+        <div class="card">
+          <div class="card-title" style="margin-bottom: 12px;">已检测到的设备列表</div>
+          <div id="settings-device-list">正在刷新...</div>
+        </div>
+        <div class="card" style="border-color: rgba(248, 81, 73, 0.3);">
+          <div class="card-title" style="color: #f85149; margin-bottom: 8px;">客户端电源控制</div>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">结束所有后台服务并彻底关闭本客户端窗口。</p>
+          <button class="btn" style="background: rgba(248, 81, 73, 0.2); border-color: #f85149; color: #ff7b72;" onclick="exitClient()">彻底退出并关闭客户端</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 右侧工作台 (视讯监控与实时终端) -->
+    <aside class="workbench">
+      <div class="preview-box">
+        <div class="preview-header">
+          <span>实机画面监视 (Live Preview)</span>
+          <button class="btn" style="padding: 4px 8px; font-size: 11px;" onclick="refreshScreen()">手动刷新</button>
+        </div>
+        <img id="live-screen" class="screen-img" src="/api/screen" alt="模拟器实时画面">
+      </div>
+
+      <div class="log-box">
+        <div class="log-header">
+          <span>运行控制台输出</span>
+          <span id="run-status-badge" style="font-size: 11px; color: var(--text-muted);">待机中</span>
+        </div>
+        <div class="log-terminal" id="log-terminal">
+          <div class="log-line"><span class="log-time">[系统]</span> FGO MAA 客户端初始化完毕，已连接到 MuMu 12。</div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    let currentTab = 'daily';
+    let logIndex = 0;
+    let isRunning = false;
+
+    function switchTab(tabId) {
+      currentTab = tabId;
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      document.getElementById('tab-' + tabId).classList.add('active');
+
+      const idx = ['daily', 'weekly', 'quests', 'teams', 'chaldea', 'settings'].indexOf(tabId);
+      document.querySelectorAll('.nav-item')[idx].classList.add('active');
+
+      // 更新大按钮文案
+      const btnText = document.getElementById('main-btn-text');
+      if (tabId === 'quests') { btnText.innerText = '开始自动作战'; loadQuestCatalog(); }
+      else if (tabId === 'weekly') btnText.innerText = '一键执行智能周常';
+      else btnText.innerText = '一键启动日常';
+    }
+
+    // 刷新设备
+    async function refreshDevices() {
+      try {
+        const res = await fetch('/api/devices');
+        const data = await res.json();
+        if (data.devices && data.devices.length > 0) {
+          const dev = data.devices[0];
+          document.getElementById('device-label').innerText = `${dev.serial} (${dev.model})`;
+          document.getElementById('settings-device-list').innerHTML = data.devices.map(d =>
+            `<div style="padding: 8px 12px; background: rgba(0,0,0,0.3); border-radius: 6px; margin-bottom: 6px; font-size: 13px;">
+              <b>${d.serial}</b> | 机型: ${d.model} | 分辨率: ${d.resolution} | 状态: <span style="color: #3fb950">${d.state}</span>
+             </div>`
+          ).join('');
+        }
+      } catch (e) {
+        document.getElementById('device-label').innerText = '未连接设备';
+      }
+    }
+
+    // 刷新截屏
+    function refreshScreen() {
+      const img = document.getElementById('live-screen');
+      img.src = '/api/screen?t=' + new Date().getTime();
+    }
+
+    // 求解周常
+    let currentWeeklyPlans = null;
+
+    async function solveWeekly(autoScan = false) {
+      const res = await fetch('/api/solve_weekly', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ auto_scan: autoScan })
+      });
+      const data = await res.json();
+      if (data.success) {
+        currentWeeklyPlans = data.plans;
+        document.getElementById('weekly-plan-results').style.display = 'block';
+        document.getElementById('plan-total-ap').innerText = data.total_ap + ' AP';
+        document.getElementById('plan-total-runs').innerText = data.total_runs + ' 场';
+        
+        let routesHtml = (data.plans || []).map((p, i) =>
+          `<div class="route-item">
+            <span>第 ${i+1} 站: <b>${p.spot}</b> (${p.war})</span>
+            <span>单次 ${p.ap_per_run} AP × <b>${p.runs}</b> 次 -> 小计 ${p.total_ap} AP</span>
+          </div>`
+        ).join('');
+
+        if (data.event_missions && data.event_missions.length > 0) {
+          routesHtml += `<div style="margin-top: 10px; padding: 10px 14px; background: rgba(240, 136, 62, 0.15); border: 1px solid rgba(240, 136, 62, 0.4); border-radius: 6px; font-size: 12px; color: #ffa657;">
+            <b>🎃 活动专属道具任务 (${data.event_missions.length} 项，请在限时活动本刷取):</b><br>` +
+            data.event_missions.map(m => `• ${m}`).join('<br>') +
+          `</div>`;
+        }
+
+        if (data.completed_missions && data.completed_missions.length > 0) {
+          routesHtml += `<div style="margin-top: 6px; padding: 8px 12px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 6px; font-size: 12px; color: var(--accent-cyan);">
+            <b>√ 已达成任务 (${data.completed_missions.length} 项，无需再刷):</b> ` + data.completed_missions.join('; ') +
+          `</div>`;
+        }
+
+        document.getElementById('plan-routes-list').innerHTML = routesHtml;
+      } else {
+        currentWeeklyPlans = [];
+        document.getElementById('weekly-plan-results').style.display = 'none';
+        alert(data.message || '周常识别或规划失败，请检查日志并重新扫描。');
+      }
+    }
+
+    let questSyncSignature = '';
+    let questSyncWasRunning = false;
+    function renderQuestSync(data) {
+      const count = data.stats?.quests || 0;
+      const checked = data.last_checked ? new Date(data.last_checked*1000).toLocaleString() : '尚未同步';
+      document.getElementById('quest-sync-status').textContent = data.running ? '正在后台同步全量目录…' : `${count ? data.stats.wars+'章／'+count+'关' : '内置目录'} · 最近检查：${checked}${data.error ? ' · '+data.message+'：'+data.error : ''}`;
+      document.getElementById('quest-sync-button').disabled = data.running;
+    }
+    async function refreshQuestDatabase() {
+      try {
+        const response = await fetch('/api/quests/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({force:true})});
+        const data = await response.json(); if (!data.success) throw new Error(data.message);
+        renderQuestSync(data); questSyncWasRunning = !!data.running;
+      } catch(error) { alert(error.message); }
+    }
+    async function pollQuestSync() {
+      if (currentTab !== 'quests') return;
+      try {
+        const data = await fetch('/api/quests/sync/status').then(r=>r.json());
+        if (!data.success) return;
+        renderQuestSync(data);
+        const signature = `${data.last_updated || ''}:${data.last_checked || ''}`;
+        if (!data.running && (questSyncWasRunning || signature !== questSyncSignature)) await loadQuestCatalog();
+        questSyncSignature = signature; questSyncWasRunning = !!data.running;
+      } catch (_) {}
+    }
+
+    let questCatalog = [];
+    let questQueue = [];
+    let lastFirstClearResult = '';
+    try { questQueue = JSON.parse(localStorage.getItem('fgoQuestQueue') || '[]'); if (!Array.isArray(questQueue)) questQueue = []; } catch (_) {}
+
+    async function loadQuestCatalog() {
+      try {
+        const [catalog, devices] = await Promise.all([fetch('/api/quests/catalog').then(r=>r.json()), fetch('/api/devices').then(r=>r.json())]);
+        if (!catalog.success) throw new Error(catalog.message || '加载关卡失败');
+        questCatalog = catalog.quests;
+        if (catalog.sync) renderQuestSync(catalog.sync);
+        const selector = document.getElementById('quest-device');
+        const previous = selector.value;
+        selector.replaceChildren();
+        (devices.devices || []).forEach(device => selector.add(new Option(`${device.serial} (${device.model})`, device.serial)));
+        if ([...selector.options].some(o=>o.value === previous)) selector.value = previous;
+        filterQuestChoices(); renderQuestQueue();
+        const wars=document.getElementById('first-clear-war'), selectedWar=wars.value;
+        wars.replaceChildren(new Option('全部已适配章节',''));
+        const available=new Map();
+        questCatalog.filter(q=>['free','event'].includes(q.kind) && q.navigation_supported).forEach(q=>available.set(q.war_id,q.war));
+        [...available].sort((a,b)=>a[0]-b[0]).forEach(([id,name])=>wars.add(new Option(name,String(id))));
+        if ([...wars.options].some(o=>o.value===selectedWar)) wars.value=selectedWar;
+        await loadFirstClearCandidates();
+      } catch (error) { document.getElementById('quest-progress').textContent = error.message; }
+    }
+
+    function filterQuestChoices() {
+      const query = document.getElementById('quest-search').value.trim().toLowerCase();
+      const selector = document.getElementById('quest-choice');
+      selector.replaceChildren();
+      const kind = document.getElementById('quest-kind').value;
+      const supportedOnly = document.getElementById('quest-supported-only').checked;
+      const labels = {free:'自由',daily:'日常',main:'主线',event:'活动',friendship:'幕间',warBoard:'战棋',autoExecute:'自动剧情'};
+      const matches = questCatalog.filter(q=>(kind==='all' || q.kind===kind) && (!supportedOnly || q.supported) && `${q.war} ${q.spot} ${q.name} ${q.game_id}`.toLowerCase().includes(query));
+      matches.sort((a,b)=>Number(b.supported)-Number(a.supported));
+      matches.slice(0,300).forEach(q=>{
+        const option = new Option(`${labels[q.kind] || q.kind} · ${q.war} / ${q.spot} / ${q.name || '未命名'}${q.supported ? '' : '（'+q.reason+'）'}`, q.quest_id);
+        option.disabled = !q.supported;
+        selector.add(option);
+      });
+      document.getElementById('quest-matches').textContent = `目录共 ${questCatalog.length} 关，匹配 ${matches.length} 关` + (matches.length>300 ? '，显示前300项，请继续搜索缩小范围。' : '。');
+      const first = [...selector.options].find(o=>!o.disabled);
+      selector.value = first ? first.value : '';
+    }
+
+    function addQuestToQueue() {
+      const quest_id = document.getElementById('quest-choice').value;
+      const runs = Number(document.getElementById('quest-runs').value);
+      if (!quest_id || !Number.isInteger(runs) || runs < 1 || runs > 100) { alert('请选择关卡并填写1至100次'); return; }
+      if (questQueue.length >= 30) { alert('队列最多30项'); return; }
+      questQueue.push({quest_id, runs}); renderQuestQueue();
+    }
+
+    function renderQuestQueue() {
+      localStorage.setItem('fgoQuestQueue', JSON.stringify(questQueue));
+      const container = document.getElementById('quest-queue'); container.replaceChildren();
+      if (!questQueue.length) { container.textContent = '队列为空'; return; }
+      questQueue.forEach((item, index)=>{
+        const q = questCatalog.find(q=>q.quest_id === item.quest_id);
+        const row = document.createElement('div'); row.style.cssText='display:flex;gap:10px;align-items:center;margin:8px 0';
+        const label = document.createElement('span'); label.style.flex='1';
+        label.textContent = `${index+1}. ${q ? q.spot+' / '+q.name : item.quest_id} × ${item.runs}`; row.append(label);
+        for (const [text, move] of [['↑', -1], ['↓', 1], ['移除', 0]]) {
+          const button = document.createElement('button'); button.className='btn'; button.textContent=text;
+          button.onclick=()=>{ if (!move) questQueue.splice(index,1); else { const next=index+move; if (next<0 || next>=questQueue.length) return; [questQueue[index],questQueue[next]]=[questQueue[next],questQueue[index]]; } renderQuestQueue(); }; row.append(button);
+        }
+        container.append(row);
+      });
+    }
+
+    async function startQuestQueue(preview) {
+      if (isRunning) { alert('已有任务正在运行，请先停止并等待结束'); return; }
+      if (!questQueue.length) { alert('请先添加关卡'); return; }
+      const device_serial = document.getElementById('quest-device').value;
+      if (!preview && !device_serial) { alert('请选择目标设备'); return; }
+      try {
+        const response = await fetch(preview ? '/api/quests/preview' : '/api/quests/run', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({queue:questQueue,device_serial})});
+        const data = await response.json(); if (!data.success) throw new Error(data.message);
+        isRunning = true; document.getElementById('quest-progress').textContent = data.message;
+      } catch (error) { alert(error.message); }
+    }
+
+    async function loadFirstClearCandidates() {
+      const element=document.getElementById('first-clear-candidates');
+      const serial=document.getElementById('quest-device').value, war=document.getElementById('first-clear-war').value;
+      if (!serial) { element.textContent='请选择目标设备后读取首通进度。'; return; }
+      try {
+        const params=new URLSearchParams({device_serial:serial}); if (war) params.set('war_id',war);
+        const data=await fetch('/api/quests/first-clear/catalog?'+params).then(r=>r.json());
+        if (!data.success) throw new Error(data.message);
+        const rows=data.quests.filter(q=>q.supported);
+        const lines=[`符合首通条件 ${rows.length} 关；阶段与开放状态将在出击前实机复核。`];
+        rows.slice(0,8).forEach(q=>lines.push(`${q.war} / ${q.spot} / ${q.name} · ${q.progress ? '已记录'+q.progress.completed_phases+'个阶段' : '待核对当前阶段'}`));
+        if (!rows.length) lines.push('当前范围没有候选；请确认章节已解锁、账号任务记录完整。');
+        element.textContent=lines.join('\n');
+      } catch(error) { element.textContent=error.message; }
+    }
+
+    async function startFirstClear() {
+      if (isRunning) { alert('已有任务正在运行，请先停止并等待结束'); return; }
+      const device_serial=document.getElementById('quest-device').value;
+      const war=document.getElementById('first-clear-war').value;
+      try {
+        if (!device_serial) throw new Error('请选择目标设备');
+        const options={...firstClearOptions(),war_ids:war ? [Number(war)] : []};
+        const response=await fetch('/api/quests/first-clear/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({device_serial,options})});
+        const data=await response.json();if (!data.success) throw new Error(data.message);
+        isRunning=true;document.getElementById('quest-progress').textContent=data.message;
+      } catch(error) { alert(error.message); }
+    }
+
+    function firstClearOptions() {
+      function limit(name,max,label) {
+        if (!document.getElementById(name+'-enabled').checked) return null;
+        const value=Number(document.getElementById(name).value);
+        if (!Number.isInteger(value) || value<1 || value>max) throw new Error(label+'须为1至'+max+'的整数');
+        return value;
+      }
+      const refill=document.getElementById('first-clear-refill-enabled').checked;
+      return {max_quests:limit('first-clear-limit',30,'最多完成关数'),ap_budget:limit('first-clear-ap',999,'AP预算'),
+              refill_apple:refill ? document.getElementById('first-clear-apple').value : 'none',
+              max_apples:refill ? limit('first-clear-apples',999,'果实使用上限') : 0};
+    }
+
+    function updateFirstClearControls() {
+      const refill=document.getElementById('first-clear-refill-enabled').checked;
+      document.getElementById('first-clear-apple').disabled=!refill;
+      document.getElementById('first-clear-apples-enabled').disabled=!refill;
+      for (const name of ['first-clear-limit','first-clear-ap','first-clear-apples']) {
+        const enabled=document.getElementById(name+'-enabled').checked;
+        document.getElementById(name).disabled=!enabled || (name==='first-clear-apples' && !refill);
+        document.getElementById(name+'-off').hidden=enabled || (name==='first-clear-apples' && !refill);
+      }
+    }
+
+    async function pollQuestStatus() {
+      if (currentTab !== 'quests') return;
+      try {
+        const {report} = await fetch('/api/quests/status').then(r=>r.json()); if (!report) return;
+        const stages = {starting:'准备中',pending:'等待',selecting:'自动选择关卡',observing:'核对实机阶段',verifying_progress:'战后阶段复核',already_completed:'实机确认已通关',ap_limit_reached:'AP不足或达到预算，已停止',refilling:'苹果恢复体力',simulating:'配队模拟',navigating:'导航',assembling:'编队核对',equipping:'装备礼装',fighting:'战斗中',settling:'结算中',completed:'完成',preview_passed:'模拟通过',failed:'失败停止',cancelled:'已取消'};
+        const firstClear=report.mode==='first_clear';
+        const lines = [`${firstClear ? '自动首通' : report.preview_only ? '模拟预览' : '自动作战'}：${stages[report.status] || report.status}，确认战斗 ${report.confirmed_clears || 0} 场`];
+        if (firstClear) lines.push(`确认完成 ${report.confirmed_quests || 0} 关、${report.confirmed_phases || 0} 个阶段；估算消耗AP ${report.estimated_ap_spent || 0}`);
+        if (firstClear && report.options) lines.push(`通关上限：${report.options.max_quests ?? '不限'}；AP预算：${report.options.ap_budget ?? '不限'}`);
+        if (firstClear && report.options?.refill_apple!=='none' && report.options?.refill_apple) lines.push(`苹果：已确认使用 ${report.apples_used || 0} 个；已提交 ${report.apples_committed ?? report.apple_attempts ?? 0}/${report.options.max_apples ?? '不限'} 个（确认 ${report.apple_attempts || 0} 次）`);
+        for (const row of report.stations || []) {
+          const t=row.target, r=row.recommendation;
+          lines.push(`${t.spot} / ${t.name}：${stages[row.status] || row.status}${firstClear ? '（当前阶段'+(row.phase || '待核对')+'）' : '（'+row.clears+'/'+t.runs+'）'}`);
+          if (r) { lines.push(`  打手：${r.slot1_dps}；助战：${r.slot3_friend_support}`); lines.push(`  礼装：${Object.values(r.laplace?.required_equipment || {}).join('、') || r.slot1_ce}`); lines.push(`  模拟：${r.laplace?.passed ? '通过' : '未通过'}；${r.strategy?.name || ''}`); }
+        }
+        if (report.error) lines.push(report.error);
+        if (report.artifacts_dir) lines.push('运行记录：'+report.artifacts_dir);
+        document.getElementById('quest-progress').textContent = lines.join('\n');
+        if (firstClear && ['completed','failed','cancelled','ap_limit_reached'].includes(report.status)) {
+          const resultKey=report.run_id+':'+report.status;
+          if (lastFirstClearResult!==resultKey) { lastFirstClearResult=resultKey;await loadFirstClearCandidates(); }
+        }
+      } catch (_) {}
+    }
+
+    // 运行日常 (完整透传用户勾选开关)
+    async function runDaily() {
+      const quest = document.getElementById('daily-quest-type').value;
+      const enable_story_summon = document.getElementById('daily-story-summon').checked;
+      const enable_fp = document.getElementById('daily-fp').checked;
+      const enable_quest = document.getElementById('daily-quest').checked;
+      const enable_reward = document.getElementById('daily-reward').checked;
+
+      await fetch('/api/run_daily', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          quest: quest,
+          runs: 3,
+          enable_story_summon: enable_story_summon,
+          enable_fp: enable_fp,
+          enable_quest: enable_quest,
+          enable_reward: enable_reward
+        })
+      });
+    }
+
+    // 运行周常
+    async function runWeekly() {
+      await fetch('/api/run_weekly', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plans: currentWeeklyPlans })
+      });
+    }
+
+    // 终止/停止当前运行的任务
+    async function stopTask() {
+      try {
+        await fetch('/api/stop', { method: 'POST' });
+      } catch (e) {}
+    }
+
+    // 主操作大按钮触发 (运行时点击为停止，空闲时点击为启动)
+    function triggerMainAction() {
+      if (isRunning) {
+        stopTask();
+      } else {
+        if (currentTab === 'quests') startQuestQueue(false);
+        else if (currentTab === 'weekly') runWeekly();
+        else runDaily();
+      }
+    }
+
+    // 加载迦勒底从者与概念礼装数据
+    async function loadChaldea() {
+      const res = await fetch('/api/chaldea');
+      const data = await res.json();
+      if (data.supports) {
+        document.getElementById('chaldea-sync-status').innerText = `已加载 ${data.total} 名从者 (满技能: ${data.max_skills}) | ${data.ce_total || 0} 张概念礼装`;
+        document.getElementById('supports-grid').innerHTML = data.supports.map(s => {
+          if (!s.name || s.name === '未持有') {
+            return `<div class="support-card" style="opacity: 0.5;">
+              <div class="support-nick" style="color: #8b949e;">${s.nick}</div>
+              <div class="support-skills">未持有</div>
+            </div>`;
+          }
+          return `<div class="support-card">
+            <div class="support-nick">${s.nick}</div>
+            <div class="support-skills">Lv.${s.lv} | 技能 ${s.skills.join('/')}</div>
+            <div class="support-append">被动NP: +${s.append_np}% ${s.has_max_append ? '★满级' : ''}</div>
+          </div>`;
+        }).join('');
+      }
+      const ceGrid = document.getElementById('ces-grid');
+      const ceStatus = document.getElementById('chaldea-ce-status');
+      if (ceGrid && data.craft_essences) {
+        if (ceStatus) ceStatus.innerText = `共持有 ${data.craft_essences.length} 张核心礼装 (优先宝具NP & NP回收 & 色卡匹配)`;
+        if (data.craft_essences.length === 0) {
+          ceGrid.innerHTML = `<div style="grid-column: 1 / -1; color: var(--text-muted); font-size: 13px;">暂未导入概念礼装，可通过抓包、实机扫描或导入 JSON 自动采集。</div>`;
+        } else {
+          ceGrid.innerHTML = data.craft_essences.map(ce => {
+            const colorTag = ce.card_buff_color === 'Arts' ? '#38bdf8' : (ce.card_buff_color === 'Buster' ? '#f85149' : (ce.card_buff_color === 'Quick' ? '#3fb950' : '#d29922'));
+            return `<div class="support-card" style="text-align: left; padding: 10px 12px;">
+              <div class="support-nick" style="color: ${colorTag}; font-size: 13px;">🎴 ${ce.name} <span style="font-size: 11px; color: #8b949e;">(${ce.is_mlb ? '满破' : '未满破'} Lv.${ce.lv})</span></div>
+              <div class="support-skills" style="font-size: 12px; color: #e6edf3; margin-top: 4px;">${ce.effect_summary}</div>
+            </div>`;
+          }).join('');
+        }
+      }
+    }
+
+    // 导入用户截取的账户 JSON / HAR / 原始抓包响应文件
+    async function handleImportAccountJson(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        let payload = text;
+        try { payload = JSON.parse(text); } catch (_) {}
+        const res = await fetch('/api/chaldea/import', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ account_data: payload })
+        });
+        const data = await res.json();
+        if (data.success) {
+          await loadChaldea();
+          const curQuest = document.getElementById('daily-quest-type').value;
+          await loadAutoTeam(curQuest);
+          alert(`√ ${data.message}\n已根据您的账户拐数量与技能练度更新智能自配队！`);
+        } else {
+          alert('导入失败: ' + (data.message || '未知错误'));
+        }
+      } catch (err) {
+        alert('读取或解析抓包文件失败: ' + err.message);
+      } finally {
+        event.target.value = '';
+      }
+    }
+
+    let captureListening = false;
+    let lastKnownCaptureTime = null;
+
+    async function togglePacketCapture() {
+      const endpoint = captureListening ? '/api/capture/stop' : '/api/capture/start';
+      try {
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ auto_proxy: true })
+        });
+        const data = await res.json();
+        await pollCaptureStatus();
+      } catch (err) {
+        alert('操作抓包服务失败: ' + err.message);
+      }
+    }
+
+    async function scanScreenServants() {
+      try {
+        const res = await fetch('/api/chaldea/scan_screen', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          await loadChaldea();
+          const curQuest = document.getElementById('daily-quest-type').value;
+          await loadAutoTeam(curQuest);
+          alert(data.message);
+        } else {
+          alert(data.message || '扫描失败');
+        }
+      } catch (err) {
+        alert('实机画面扫描失败: ' + err.message);
+      }
+    }
+
+    async function pollCaptureStatus() {
+      try {
+        const res = await fetch('/api/capture/status');
+        const data = await res.json();
+        captureListening = !!data.listening;
+        const badge = document.getElementById('capture-status-badge');
+        const btn = document.getElementById('btn-toggle-capture');
+        if (!badge || !btn) return;
+
+        if (captureListening) {
+          badge.innerText = `🟢 抓包监听中 (${data.host}:${data.port} | 已捕获流量: ${data.packet_count} 包)`;
+          badge.style.color = '#3fb950';
+          btn.innerText = '⏹ 停止抓包并恢复模拟器直连';
+          btn.style.background = '#da3633';
+          btn.style.color = '#fff';
+        } else {
+          badge.innerText = data.last_capture_time
+            ? `√ 上次抓包/同步: ${data.last_capture_time} (${data.captured_servants_count} 骑从者) | 模拟器已恢复直连`
+            : '抓包未开启 (模拟器直连)';
+          badge.style.color = data.last_capture_time ? '#38bdf8' : '#8b949e';
+          btn.innerText = '📡 开启一键抓包监听 (自动挂载模拟器代理)';
+          btn.style.background = '';
+          btn.style.color = '';
+        }
+
+        // 若新截获了数据包，自动刷新从者库与智能自配队
+        if (data.last_capture_time && data.last_capture_time !== lastKnownCaptureTime) {
+          lastKnownCaptureTime = data.last_capture_time;
+          await loadChaldea();
+          const curQuest = document.getElementById('daily-quest-type').value;
+          await loadAutoTeam(curQuest);
+        }
+      } catch (e) {}
+    }
+
+    let autoTeamRequestId = 0;
+
+    function escapeLaplaceText(value) {
+      return String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function renderLaplace(result) {
+      const r = result || {};
+      const color = r.passed ? '#3fb950' : '#f0883e';
+      const equipment = Object.entries(r.required_equipment || {}).map(([slot, name]) => `${slot}号位：${name}`).join('；') || r.required_ce_name;
+      const rows = (r.steps || []).map(s => {
+        const damage = (s.damage || []).map(d => `${Number(d.damage).toLocaleString()} / ${Number(d.hp).toLocaleString()}`).join('；');
+        const normal = s.attack_mode === 'facecards';
+        return `<tr><td>T${Number(s.turn)}</td><td>${normal ? '技能后普攻' : Number(s.np_servant || 1) + '号位宝具'}</td><td>${normal ? '—' : Number(s.np_before_attack).toFixed(2) + '%'}</td><td>${escapeLaplaceText(damage || (s.instant_death_clear ? '即死清场' : '未释放宝具'))}</td><td>${normal ? '—' : Number(s.np_after_turn || 0).toFixed(2) + '%'}</td></tr>`;
+      }).join('');
+      return `<div style="margin-top:12px;padding:12px;border:1px solid ${color};border-radius:8px;">
+        <b style="color:${color};">Laplace 战斗校验 · ${r.passed ? '模拟通过' : '未通过'}</b>
+        <div style="margin-top:6px;">${escapeLaplaceText(r.message || '尚未计算')}</div>
+        ${equipment ? `<div style="margin-top:6px;font-size:12px;">计算装备：${escapeLaplaceText(equipment)}${r.required_mystic_code_id ? '；迦勒底战斗服 Lv10' : ''}。请保持游戏装备一致。</div>` : ''}
+        ${r.enemy_region === 'JP' ? '<div style="margin-top:4px;font-size:12px;color:var(--text-muted);">敌人数据：同关卡日服公开样本。</div>' : ''}
+        ${rows ? `<table style="width:100%;font-size:12px;margin-top:8px;text-align:left;"><thead><tr><th>回合</th><th>行动</th><th>宝具前 NP</th><th>各敌伤害 / HP</th><th>回合后 NP</th></tr></thead><tbody>${rows}</tbody></table>` : ''}
+        ${(r.assumptions || []).length ? `<details style="margin-top:8px;font-size:12px;color:var(--text-muted);"><summary>计算条件与数据来源</summary>${r.assumptions.map(a => `<div style="margin-top:4px;">${escapeLaplaceText(a)}</div>`).join('')}</details>` : ''}
+      </div>`;
+    }
+
+    // 根据目标关卡敌人信息与账户练度加载智能自配队方案
+    async function loadAutoTeam(questId) {
+      const requestId = ++autoTeamRequestId;
+      const q = questId || document.getElementById('daily-quest-type').value;
+      document.getElementById('daily-quest-type').value = q;
+      const simSelect = document.getElementById('chaldea-quest-sim');
+      if (simSelect) simSelect.value = q;
+      document.getElementById('daily-auto-team-preview').innerHTML = '<div style="color:var(--accent-cyan);">Laplace 正在校验推荐阵容、伤害与 NP 回收…</div>';
+      const pendingDetail = document.getElementById('chaldea-auto-team-detail');
+      if (pendingDetail) pendingDetail.innerHTML = '<div>Laplace 正在计算…</div>';
+
+      try {
+        const res = await fetch('/api/auto_team?quest=' + encodeURIComponent(q));
+        const data = await res.json();
+        if (requestId !== autoTeamRequestId) return;
+        if (!data.success || !data.recommendation) throw new Error(data.message || '未能获取编队计算结果');
+        const r = data.recommendation;
+        const laplaceHtml = renderLaplace(r.laplace);
+
+        const dirBadgeColor = r.direction === 'Arts' ? '#38bdf8' : (r.direction === 'Buster' ? '#f85149' : (r.direction === 'Quick' ? '#3fb950' : '#d29922'));
+
+        // 更新日常页卡片预览
+        document.getElementById('daily-auto-team-preview').innerHTML = `
+          <div style="margin-bottom: 8px;">
+            <span style="background: rgba(56,189,248,0.15); color: var(--accent-cyan); padding: 2px 8px; border-radius: 4px; font-weight: 600;">敌方: ${r.enemy_class_cn} (${r.waves.join('-')})</span>
+            <span style="background: rgba(255,255,255,0.08); color: ${dirBadgeColor}; padding: 2px 8px; border-radius: 4px; font-weight: 700; margin-left: 6px;">方向: ${r.direction_name}</span>
+          </div>
+          <div style="color: #e6edf3; margin-bottom: 6px;">
+            <b>推荐编制:</b>
+            [1号位打手: <span style="color: #3fb950; font-weight: 700;">${r.slot1_dps}</span> (${r.slot1_affinity}x克制)] +
+            [2号位: <span style="color: var(--accent-cyan);">${r.slot2_support}</span>] +
+            [3号位: <span style="color: var(--accent-cyan);">${r.slot3_friend_support}</span>] +
+            [4号位: ${r.slot4_backline_support}]
+          </div>
+          <div style="color: #e6edf3; margin-bottom: 6px; font-size: 12px;">
+            <b>🎴 智能匹配礼装:</b> 1号位佩戴【<span style="color: #f0883e; font-weight: 700;">${r.slot1_ce}</span>】 | 2号位佩戴【${r.slot2_ce || '加成礼装'}】
+          </div>
+          <div style="font-size: 12px; color: var(--text-muted);">
+            <b>决策依据:</b> ${r.direction_reason}
+          </div>
+          ${laplaceHtml}
+        `;
+
+        // 更新迦勒底页详细配队分析与候选打手排行榜
+        const turnsHtml = [1, 2, 3].map(t => {
+          const steps = (r.turn_descriptions && r.turn_descriptions[t]) || [];
+          return `<div style="margin-bottom: 4px;"><b>Wave ${t}:</b> ${steps.join(' → ')}</div>`;
+        }).join('');
+
+        const candidatesHtml = (r.candidate_dps_ranking || []).slice(0, 6).map((c, idx) => `
+          <div class="route-item" style="${c.svt_id === r.slot1_svt_id ? 'border: 1px solid #3fb950; background: rgba(63,185,80,0.12);' : ''}">
+            <span>#${idx + 1} <b>${c.name}</b> (${c.class_name} | ${c.card_color} | Lv.${c.lv} 宝具${c.np_lv}) <span style="color: #f0883e; font-size: 12px;">[礼装: ${c.ce_req}]</span></span>
+            <span>克制: <b>${c.affinity}x</b> | 自充${c.self_charge}%+被动${c.append_np}% | 综合分: <b style="color: var(--accent-cyan);">${c.score}</b></span>
+          </div>
+        `).join('');
+
+        const detailEl = document.getElementById('chaldea-auto-team-detail');
+        if (detailEl) {
+          detailEl.innerHTML = `
+            ${laplaceHtml}
+            <div style="padding: 12px; background: rgba(0,0,0,0.25); border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 12px;">
+              <div style="font-size: 15px; font-weight: 700; color: ${dirBadgeColor}; margin-bottom: 6px;">★ 选定配队方向: ${r.direction_name}</div>
+              <div style="margin-bottom: 8px; font-size: 12px; color: var(--text-muted);">${r.direction_reason}</div>
+              <div style="margin-bottom: 8px;">
+                <b>出击编制:</b> 1号位【${r.slot1_dps}】/ 2号位【${r.slot2_support}】 / 3号位【${r.slot3_friend_support}】 / 4号位【${r.slot4_backline_support}】<br>
+                <b>🎴 礼装分配:</b> 1号位【<span style="color: #f0883e; font-weight: 700;">${r.slot1_ce}</span>】 | 2号位【${r.slot2_ce || '加成礼装'}】<br>
+                <b>推荐御主礼装:</b> ${r.mystic_code}
+              </div>
+              <div style="padding-top: 8px; border-top: 1px dashed var(--border-color); font-size: 12px;">
+                ${turnsHtml}
+              </div>
+            </div>
+            <div style="font-weight: 600; margin-bottom: 8px;">📊 当前关卡 (${r.enemy_class_cn}) 账号内可用打手 & 概念礼装协同评分排行:</div>
+            ${candidatesHtml}
+          `;
+        }
+      } catch (e) {
+        if (requestId !== autoTeamRequestId) return;
+        const errorHtml = renderLaplace({ passed: false, message: '计算失败：' + e.message });
+        document.getElementById('daily-auto-team-preview').innerHTML = errorHtml;
+        const detailEl = document.getElementById('chaldea-auto-team-detail');
+        if (detailEl) detailEl.innerHTML = errorHtml;
+      }
+    }
+
+    // 加载队伍
+    async function loadTeams() {
+      const res = await fetch('/api/teams');
+      const data = await res.json();
+      if (data.teams) {
+        document.getElementById('teams-container').innerHTML = data.teams.map(t =>
+          `<div class="card">
+            <div class="card-header">
+              <span class="card-title">${t.name} (ID: ${t.id})</span>
+              <span style="font-size: 12px; color: var(--accent-green);">要求被动充能: ≥${t.required_min_np_charge}%</span>
+            </div>
+            <div style="font-size: 13px; color: var(--text-muted);">
+              匹配从者关键词: ${t.match_servants.join(' + ')} | 回合步骤数: ${t.turns_count} 轮 3T 循环
+            </div>
+          </div>`
+        ).join('');
+      }
+    }
+
+    // 日志轮询
+    async function pollLogs() {
+      try {
+        const res = await fetch('/api/logs?since=' + logIndex);
+        const data = await res.json();
+        if (data.logs && data.logs.length > 0) {
+          const terminal = document.getElementById('log-terminal');
+          data.logs.forEach(l => {
+            const line = document.createElement('div');
+            line.className = 'log-line';
+            line.innerHTML = `<span class="log-time">[${l.time}]</span> <span class="log-${l.level}">${l.text}</span>`;
+            terminal.appendChild(line);
+          });
+          terminal.scrollTop = terminal.scrollHeight;
+          logIndex += data.logs.length;
+        }
+
+        const badge = document.getElementById('run-status-badge');
+        const btn = document.getElementById('main-action-btn');
+        const btnText = document.getElementById('main-btn-text');
+
+        isRunning = !!data.is_running;
+        if (isRunning) {
+          badge.innerText = '正在运行自动化流程...';
+          badge.style.color = '#38bdf8';
+          btn.classList.add('running');
+          btn.style.background = '#da3633';
+          btnText.innerText = '⏹ 停止运行 (中断任务)';
+        } else {
+          badge.innerText = '空闲待机中';
+          badge.style.color = '#8b949e';
+          btn.classList.remove('running');
+          btn.style.background = '';
+          btnText.innerText = currentTab === 'quests' ? '开始自动作战' : (currentTab === 'weekly' ? '一键执行智能周常' : '一键启动日常');
+        }
+      } catch (e) {}
+    }
+
+    async function exitClient() {
+      if (confirm('确认完全退出 FGO MAA 客户端并关闭服务？')) {
+        try {
+          await fetch('/api/exit');
+        } catch (e) {}
+        window.close();
+      }
+    }
+
+    // 初始化
+    window.onload = () => {
+      updateFirstClearControls();
+      refreshDevices();
+      loadChaldea();
+      loadTeams();
+      loadAutoTeam('daily_qp_extreme');
+      pollCaptureStatus();
+      refreshScreen();
+      setInterval(pollLogs, 1000);
+      setInterval(pollQuestStatus, 1500);
+      setInterval(pollQuestSync, 2500);
+      setInterval(pollCaptureStatus, 2000);
+      setInterval(refreshScreen, 3000);  // 3秒自动刷新一次游戏视讯
+      setInterval(() => fetch('/api/heartbeat').catch(() => {}), 2000); // 维持客户端会话心跳
+      window.addEventListener('beforeunload', () => { fetch('/api/stop').catch(() => {}); });
+    };
+  </script>
+</body>
+</html>
