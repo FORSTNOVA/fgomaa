@@ -27,7 +27,7 @@ class DeviceManager:
 
     # 常见模拟器默认默认安装路径与端口预设
     COMMON_EMULATOR_PORTS = [
-        16384, 16416, 16448, 16480,  # MuMu 12 (多开实例递增)
+        16384, 16416, 16417, 16448, 16480,  # MuMu 12
         7555,                         # MuMu 6 / 旧版
         5555, 5556, 5557,             # 雷电模拟器 / BlueStacks
         21503, 21513,                 # 逍遥模拟器
@@ -107,7 +107,7 @@ class DeviceManager:
             except Exception:
                 continue
 
-    def get_connected_devices(self, auto_connect: bool = True) -> List[DeviceInfo]:
+    def get_connected_devices(self, auto_connect: bool = True, *, include_resolution: bool = True) -> List[DeviceInfo]:
         """获取所有当前已连接的设备列表"""
         if auto_connect:
             self.scan_and_connect_emulators()
@@ -139,7 +139,7 @@ class DeviceManager:
 
                 # 获取分辨率 (仅对在线 device 查询)
                 resolution = "Unknown"
-                if state == "device":
+                if include_resolution and state == "device":
                     _, size_out = self.run_adb(["-s", serial, "shell", "wm", "size"])
                     res_match = re.search(r"(\d+x\d+)", size_out)
                     if res_match:
@@ -154,10 +154,11 @@ class DeviceManager:
                     is_emulator=is_emulator
                 ))
 
-        # 智能优先级排序：模拟器 (127.0.0.1:16416 / is_emulator=True) 优先排在前面，防止用户插着充电手机时被误选
+        # 先选可操作的连接，再优先选 MuMu 和其他模拟器。
         devices.sort(key=lambda d: (
-            0 if "16416" in d.serial else (1 if d.is_emulator else 2),
-            0 if d.state == "device" else 1
+            d.state != "device",
+            d.serial not in ("127.0.0.1:16416", "127.0.0.1:16417"),
+            not d.is_emulator,
         ))
 
         return devices

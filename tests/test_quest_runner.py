@@ -39,13 +39,10 @@ class TestQuestRunner(unittest.TestCase):
         for data in [[],{},[{'quest_id':'fuyuki_x_a','runs':0}],[{'quest_id':'fuyuki_x_a','runs':True}],[{'quest_id':'fuyuki_x_a','runs':'2'}],[{'quest_id':'fuyuki_x_a','runs':1,'war':'forged'}]]:
             with self.subTest(data=data),self.assertRaises(ValueError):resolve_queue(data,self.parser)
 
-    def test_uncleared_free_quest_is_not_executable(self):
-        with self.assertRaises(ValueError):resolve_queue([{'quest_id':'fuyuki_x_b','runs':1}],self.parser)
+    def test_free_and_daily_queues_do_not_require_clear_records(self):
+        self.parser.quest_records = {}
+        self.assertTrue(resolve_queue([{'quest_id':'fuyuki_x_b','runs':1}],self.parser))
         self.assertTrue(resolve_queue([{'quest_id':'daily_qp_extreme','runs':1}],self.parser))
-
-    def test_partial_clear_does_not_prove_final_phase(self):
-        self.parser.quest_records[93000001]['questPhase']=1
-        with self.assertRaises(ValueError):resolve_queue(self.queue[:1],self.parser)
 
     def test_preview_has_no_device_or_battle_calls_and_no_clears(self):
         with patch.object(QuestBattleExecutor,'prepare',return_value=True):

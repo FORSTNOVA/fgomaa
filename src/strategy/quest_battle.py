@@ -4,12 +4,14 @@ import time
 
 from src.strategy.screen_detector import GameScreen, ScreenDetector
 from src.strategy.auto_team_builder import SERVANT_TACTICAL_DB
+from src.strategy.quest_repeat import repeat_ap, repeat_buttons
 
 
 class QuestBattleExecutor:
     """依赖感知引擎提供视觉/动作能力，不依赖日常、周常工作流。"""
     def __init__(self, engine):
         self.engine = engine
+        self._pending_repeat = None
 
     def stage(self, value):
         callback = getattr(self.engine, "quest_progress_callback", None)
@@ -17,17 +19,18 @@ class QuestBattleExecutor:
             callback(value)
 
     def navigate(self, plan, war, spot, name):
+        resource_check = getattr(self.engine, 'quest_resource_check', None)
+        if resource_check is not None and not resource_check(plan):
+            return False
         if getattr(plan, "kind", "free") == "daily":
             from src.strategy.quest_navigation import navigate_daily_quest
             return navigate_daily_quest(self.engine, plan.quest_id)
         if getattr(plan,'kind','free')=='event':
             from src.strategy.event_navigation import resolve_spot
             from src.strategy.quest_catalog import quest_binding
-            from src.workflows.quest_runner import quest_cleared
             entry=quest_binding(plan.quest_id)
-            parser=self.engine.chaldea_parser
-            if entry is not None and parser is not None:
-                spot=resolve_spot(entry,lambda qid,phase:quest_cleared(parser,qid,phase))['spot']
+            if entry is not None:
+                spot=resolve_spot(entry)['spot']
         if getattr(plan,'first_clear',False):
             from src.strategy.first_clear_progress import inspect_free_quest
             from src.strategy.quest_catalog import quest_binding
@@ -45,43 +48,37 @@ class QuestBattleExecutor:
             except (ValueError,RuntimeError) as exc:
                 self.engine.log(f'[首通出击停止] {exc}')
                 return False
+        elif resource_check is None and isinstance(getattr(plan, 'game_id', None), int):
+            from src.strategy.quest_resources import inspect_battle_quest
+            try:
+                inspect_battle_quest(self.engine, plan)
+            except (ValueError, RuntimeError) as exc:
+                self.engine.log(f'[关卡出击停止] {exc}')
+                return False
         return self.engine.navigate_to_free_quest(war, spot, name)
 
     def prepare(self, plan):
-        engine = self.engine
-        quest_name, war_name, spot_name = plan.name, plan.war, plan.spot
-        quest_id = getattr(plan, "quest_id", "")
-        self.stage("simulating")
-        if engine.team_builder:
-            try:
-                engine.current_recommendation = engine.team_builder.recommend_for_quest(
-                    target_quest=quest_name,
-                    war_name=war_name,
-                    spot_name=spot_name,
-                    quest_id=quest_id,
-                )
-                if not engine._ensure_laplace():
-                    return False
-                engine.active_strategy = engine.current_recommendation.strategy
-                engine.log(
-                    f"★ [关卡智能对策] 敌方职阶: {engine.current_recommendation.enemy_class_cn} | "
-                    f"首选打手: 1号位【{engine.current_recommendation.slot1_dps}】({engine.current_recommendation.slot1_class} {engine.current_recommendation.slot1_affinity}x克制) | "
-                    f"策略: {engine.current_recommendation.strategy.name}"
-                )
-            except Exception as e:
-                engine.current_recommendation = None
-                engine.active_strategy = None
-                engine.log(f"[关卡停止] 智能配队推荐失败，不能沿用上一站策略: {e}")
-                return False
+        from src.strategy.quest_simulation import prepare_quest
+        return prepare_quest(self.engine, plan)
 
-        if not engine._ensure_laplace():
-            return False
-        return True
+    def _close_continue(self, position):
+        engine = self.engine
+        engine.ctrl.click(*position, delay_after=2.0)
+        for _ in range(6):
+            if engine.is_cancelled():
+                return False
+            screen, _ = engine.get_current_screen()
+            if screen in (GameScreen.REGIONAL_MAP, GameScreen.MAIN_MENU, GameScreen.MAIN_RECORD, GameScreen.CHALDEA_GATE):
+                return True
+            time.sleep(1.0)
+        engine.log('[关卡停止] 未确认离开连续出击弹窗。')
+        return False
 
     def run(
         self,
         plan: Any,
-        cancel_event: Optional[Any] = None
+        cancel_event: Optional[Any] = None,
+        *, prepared: bool = False, repeat_next: bool = False, repeat_resources=None,
     ) -> bool:
         """
         响应式关卡单站执行器:
@@ -105,32 +102,86 @@ class QuestBattleExecutor:
         battle_authorized = False
         battle_started = False
         first_clear_submitted = False
-        if runs_needed <= 0 or engine.is_cancelled() or (cancel_event is not None and cancel_event.is_set()):
+        pending_repeat = self._pending_repeat
+        self._pending_repeat = None
+
+        def cancelled():
+            return engine.is_cancelled() or (cancel_event is not None and cancel_event.is_set())
+
+        if runs_needed <= 0 or cancelled():
             return False
 
         engine.log(f">>> [响应式关卡站点] 启动执行: [{war_name}] {spot_name} - {quest_name} (需完成 {runs_needed} 场)")
 
         party_assembled_for_station = False
         quest_id = getattr(plan, "quest_id", "")
-        if not self.prepare(plan):
+        if prepared:
+            rec = engine.current_recommendation
+            if rec is None or rec.target_quest_id != quest_id or not engine._ensure_laplace():
+                engine.log('[关卡停止] 预览方案与目标关卡不一致或校验失效。')
+                return False
+        elif not self.prepare(plan):
             return False
         validated_quest = engine.current_recommendation.laplace
         quest_name = validated_quest.get("quest_name", quest_name)
         spot_name = validated_quest.get("spot", spot_name)
 
-        # 启动前先确诊界面：若未处于助战/编队/战斗状态，立即启动全自动实机地图导航！
-        self.stage("navigating")
-        if not self.navigate(plan, war_name, spot_name, quest_name):
-            engine.log("[关卡停止] 未确认目标关卡导航成功。")
-            return False
+        repeat_key = (quest_id, getattr(plan, 'phase', None))
+        continuing = False
+        next_screen = None
+        if pending_repeat is not None:
+            previous_key, previous_strategy = pending_repeat
+            if previous_key != repeat_key or repeat_resources is None:
+                engine.log('[关卡停止] 待连续出击的关卡与本轮目标不一致。')
+                return False
+            image = engine.ctrl.screencap(force_fresh=True)
+            if image.size != (1920, 1080):
+                image = image.resize((1920, 1080))
+            buttons = repeat_buttons(ScreenDetector.run_ocr(image))
+            if buttons is None:
+                engine.log('[关卡停止] 上一场的连续出击确认框已变化。')
+                return False
+            close_pos, repeat_pos = buttons
+            ap = repeat_ap(image)
+            if previous_strategy is engine.current_recommendation.strategy and ap is not None and repeat_resources(plan, *ap):
+                if cancelled():
+                    return False
+                engine.quest_start_callback(plan)
+                first_clear_submitted = continuing = True
+                engine.log('[连续出击] 已核对 AP，沿用上一场编队并重新选择助战。')
+                engine.ctrl.click(*repeat_pos, delay_after=2.2)
+                for _ in range(6):
+                    if cancelled():
+                        return False
+                    screen, details = engine.get_current_screen()
+                    if screen == GameScreen.SUPPORT_SELECT:
+                        next_screen = (screen, details)
+                        break
+                    if screen not in (GameScreen.CONTINUE_QUEST, GameScreen.LOADING, GameScreen.UNKNOWN):
+                        break
+                    time.sleep(1.0)
+                if next_screen is None:
+                    engine.log('[关卡停止] 点击连续出击后未确认助战页。')
+                    return False
+            else:
+                engine.log('[连续出击] 回关卡卡片重新核对出击条件。')
+                if cancelled() or not self._close_continue(close_pos):
+                    return False
+
+        if not continuing:
+            self.stage("navigating")
+            if not self.navigate(plan, war_name, spot_name, quest_name):
+                engine.log("[关卡停止] 未确认目标关卡导航成功。")
+                return False
 
         while step_count < max_steps:
             step_count += 1
-            if engine.is_cancelled() or (cancel_event is not None and cancel_event.is_set()):
+            if cancelled():
                 engine.log("[任务中断] 接收到用户停止指令，退出关卡执行！")
                 return False
 
-            screen, details = engine.get_current_screen()
+            screen, details = next_screen or engine.get_current_screen()
+            next_screen = None
             all_text_str = " ".join(details.get("all_texts", []))
 
             if screen == GameScreen.UNKNOWN and "跳过" in all_text_str and any(t in all_text_str for t in ("记录", "自动")):
@@ -154,6 +205,16 @@ class QuestBattleExecutor:
                 engine.log("【出击阻断】检测到背包已满，关闭弹窗并终止本站...")
                 engine.ctrl.click(close_pos[0], close_pos[1], delay_after=1.5)
                 return False
+
+            if '好友申请' in all_text_str and (battle_started or engine.battle_result_counted):
+                ocr_res = details.get('ocr_results', [])
+                reject = (ScreenDetector.find_text_coordinate(ocr_res, '不申请', (240, 800, 850, 1030))
+                          or ScreenDetector.find_text_coordinate(ocr_res, '结束', (240, 800, 850, 1030)))
+                if reject is None:
+                    engine.log('[关卡停止] 未确认好友申请页的结束按钮。')
+                    return False
+                engine.ctrl.click(*reject, delay_after=1.5)
+                continue
 
             # 2. 弹窗/子界面遮罩关闭
             # 弹窗/编制恢复弹窗快速关闭
@@ -180,6 +241,9 @@ class QuestBattleExecutor:
 
             # 3. 助战选择界面 (SUPPORT_SELECT)
             if screen == GameScreen.SUPPORT_SELECT:
+                if continuing and battle_authorized:
+                    engine.log('[关卡停止] 连续出击的助战选择已提交。')
+                    return False
                 guidance_logged = False
                 ocr_res = details.get("ocr_results", [])
                 expected_level = engine.current_recommendation.laplace.get("recommended_level") if engine.current_recommendation else None
@@ -193,15 +257,25 @@ class QuestBattleExecutor:
                     initial_ocr=ocr_res,
                 )
                 if sup_pos is None:
-                    if engine._replace_unavailable_rotation_support():
+                    if not continuing and engine._replace_unavailable_rotation_support():
                         continue
                     engine.log("[出击停止] 未确认方案指定的助战。")
                     return False
+                if cancelled():
+                    return False
+                if continuing:
+                    battle_authorized = True
+                    engine.current_combat_turn = 1
+                    engine.party_slot_to_screen_slot = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6}
+                    engine.executed_waves.clear()
+                    engine.failed_combat_skills.clear()
+                    engine._last_combat_slot1_name = ""
                 engine.ctrl.click(sup_pos[0], sup_pos[1], delay_after=2.5)
                 # 严格闭环验证：确认助战选择生效，成功进入出击编队确认界面
                 for _ in range(5):
                     post_sc, _ = engine.get_current_screen()
-                    if post_sc in [GameScreen.PARTY_CONFIRM, GameScreen.BATTLE_COMBAT]:
+                    if post_sc in [GameScreen.PARTY_CONFIRM, GameScreen.BATTLE_COMBAT] or (
+                            continuing and post_sc in (GameScreen.LOADING, GameScreen.BATTLE_CARD_SELECT)):
                         engine.log(f"√ [闭环核验] 助战选择生效，已成功进入【{post_sc.value}】！")
                         break
                     time.sleep(1.0)
@@ -209,6 +283,9 @@ class QuestBattleExecutor:
 
             # 4. 出击确认编队界面 (PARTY_CONFIRM)
             if screen == GameScreen.PARTY_CONFIRM:
+                if continuing:
+                    engine.log('[关卡停止] 连续出击后出现非预期编队确认，停止再次提交。')
+                    return False
                 self.stage("assembling")
                 if not engine._ensure_laplace():
                     return False
@@ -281,10 +358,13 @@ class QuestBattleExecutor:
                             ScreenDetector.find_text_coordinate(fresh_ocr, "开始", region=(1400, 800, 1920, 1080)) or \
                             (1750, 940)
                 engine.log(f"出击确认就绪，点击右下角金色【开始任务】大按钮: {start_pos}...")
-                if getattr(plan,'first_clear',False) and first_clear_submitted:
-                    engine.log('[首通停止] 本阶段已经提交过出击，未确认结果前不重复消耗AP。')
+                if (getattr(plan,'first_clear',False) or getattr(plan,'single_submission',False)) and first_clear_submitted:
+                    engine.log('[出击停止] 本场已经提交过出击，未确认结果前不重复消耗AP。')
                     return False
                 first_clear_submitted = True
+                before_start = getattr(engine, 'quest_start_callback', None)
+                if before_start is not None:
+                    before_start(plan)
                 engine.ctrl.click(start_pos[0], start_pos[1], delay_after=2.5)
                 battle_authorized = True
                 battle_started = False
@@ -439,22 +519,18 @@ class QuestBattleExecutor:
                     engine.party_slot_to_screen_slot = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6}
                     engine.executed_waves.clear()
                 else:
+                    if (repeat_next and repeat_resources is not None and (party_assembled_for_station or continuing)
+                            and engine.active_strategy is engine.current_recommendation.strategy
+                            and repeat_buttons(ocr_res) is not None):
+                        self._pending_repeat = (repeat_key, engine.active_strategy)
+                        return True
                     close_cont = (
                         ScreenDetector.find_text_coordinate(ocr_res, "关闭", region=(300, 650, 960, 980))
                     )
                     if close_cont is None:
                         return False
                     engine.log(f"本站目标场次已打满 ({cleared_runs}/{runs_needed})，点击【关闭】退出连续出击...")
-                    engine.ctrl.click(close_cont[0], close_cont[1], delay_after=2.0)
-                    # 闭环确认：等待画面切回大地图或主界面
-                    for _ in range(6):
-                        post_sc, _ = engine.get_current_screen()
-                        if post_sc in [GameScreen.REGIONAL_MAP, GameScreen.MAIN_MENU, GameScreen.MAIN_RECORD]:
-                            engine.log(f"√ [闭环核验] 已确认安全返回地图 ({post_sc.value})，本站执行完毕！")
-                            return True
-                        time.sleep(1.0)
-                    engine.log("[关卡停止] 未确认离开连续出击弹窗，不能进入下一站。")
-                    return False
+                    return self._close_continue(close_cont)
                 continue
 
             # 9. 战利品结算 (BATTLE_RESULT)
@@ -503,7 +579,7 @@ class QuestBattleExecutor:
 
             # 若在主大厅、主线记录列表或区域地图中且未进入关卡，调用全自动实机地图导航
             if screen in [GameScreen.MAIN_MENU, GameScreen.MAIN_RECORD, GameScreen.REGIONAL_MAP]:
-                if getattr(plan,'first_clear',False) and first_clear_submitted:
+                if (getattr(plan,'first_clear',False) or getattr(plan,'single_submission',False)) and first_clear_submitted:
                     engine.log('[首通停止] 出击后意外返回地图且没有结算依据，保留现场。')
                     return False
                 engine.log(f"当前处于【{screen.value}】，调用全自动地图寻路进入【{war_name} -> {spot_name}】...")

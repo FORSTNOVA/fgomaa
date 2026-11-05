@@ -1169,7 +1169,7 @@ class AutoTeamBuilder:
                 slot2_sup = "哈贝特洛特 / 诸葛孔明 / 暗之高扬斯卡娅"
                 slot3_sup = "助战 阿尔托莉雅·Caster / 光之高扬斯卡娅"
                 slot4_sup = "后排主力输出或羁绊从者"
-                mystic_code = "迦勒底战斗服 / 魔术协会制服 (20%充能)"
+                mystic_code = "迦勒底战斗服"
                 turns = {
                     1: TurnDirective(
                         skills=[SkillAction(servant=1, skill=1), SkillAction(servant=2, skill=2), SkillAction(servant=3, skill=1)],
@@ -1190,6 +1190,7 @@ class AutoTeamBuilder:
             name=f"【智能自配】{best['name']} - {direction_name}",
             match_servants=[best["name"], slot2_sup.split(" ")[0]],
             required_min_np_charge=best["append_np"],
+            mystic_code_id=20 if any(turn.master_skills for turn in turns.values()) else None,
             turns=turns
         )
 

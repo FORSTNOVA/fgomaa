@@ -2,12 +2,14 @@ import copy
 import json
 import os
 from pathlib import Path
+import ssl
 from types import SimpleNamespace
 import tempfile
 import threading
 import unittest
 from unittest.mock import MagicMock, patch
 import urllib.request
+from urllib.error import URLError
 
 from src.parser.chaldea_parser import ChaldeaParser, CraftEssenceProfile, ServantProfile
 from src.strategy.auto_team_builder import AutoTeamBuilder
@@ -31,6 +33,28 @@ def fixture():
     parser.craft_essences = {9401380: CraftEssenceProfile(ce_id=9401380, name="毒蛇一艺", lv=13,
         is_mlb=True, card_buff_color="Arts", card_buff_rate=40)}
     return parser, AutoTeamBuilder(parser).recommend_for_quest("daily_qp_extreme")
+
+
+class TestPublicDataDownload(unittest.TestCase):
+    def test_tls_eof_retries_and_reports_the_failed_resource(self):
+        eof = URLError(ssl.SSLEOFError(8, "UNEXPECTED_EOF_WHILE_READING"))
+        with (
+            tempfile.TemporaryDirectory() as directory,
+            patch("urllib.request.urlopen", side_effect=eof) as request,
+            patch("src.strategy.laplace.time.sleep"),
+        ):
+            data = PublicData(directory)
+            with self.assertRaisesRegex(LaplaceError, "CN/servant/800100.*尝试 3 次"):
+                data.get("CN", "servant", 800100)
+            self.assertEqual(request.call_count, 3)
+            self.assertFalse((Path(directory) / "CN").exists())
+
+    def test_tls_certificate_failure_does_not_retry(self):
+        failure = URLError(ssl.SSLCertVerificationError(1, "CERTIFICATE_VERIFY_FAILED"))
+        with patch("urllib.request.urlopen", side_effect=failure) as request:
+            with self.assertRaisesRegex(LaplaceError, "CERTIFICATE_VERIFY_FAILED"):
+                PublicData().download("CN/servant/800100")
+            request.assert_called_once()
 
 
 class TestLaplaceGates(unittest.TestCase):
@@ -170,6 +194,30 @@ class TestLaplaceProtocol(unittest.TestCase):
         self.rec.target_quest_id = "unknown_quest"
         with self.assertRaises(LaplaceError):
             self.service._prepare(self.rec, self.parser, None)
+
+    def test_no_swap_master_action_keeps_explicit_outfit_and_account_level(self):
+        self.rec.strategy.turns[3].master_skills = [MasterSkillAction(skill=1)]
+        self.rec.strategy.turns[3].skills = [s for s in self.rec.strategy.turns[3].skills if s.servant != 4]
+        self.parser.mystic_codes_complete = True
+        self.parser.mystic_codes = {20: 6}
+        payload, metadata = self.service._prepare(self.rec, self.parser, None)
+        self.assertEqual(payload["request"]["mystic_code_id"], 20)
+        self.assertEqual(metadata["required_mystic_code_level"], 6)
+        self.assertNotIn(4, metadata["party_servant_ids"])
+        self.rec.strategy.mystic_code_id = None
+        with self.assertRaisesRegex(LaplaceError, "未指定魔术礼装"):
+            self.service._prepare(self.rec, self.parser, None)
+
+    def test_expanded_search_tries_earlier_swap_and_owned_backline_support(self):
+        self.parser.servants[501900] = ServantProfile(svt_id=501900, lv=90)
+        self.rec.laplace = {"steps": [{"np_before_attack": 100}, {"np_before_attack": 97}]}
+        variants = list(self.service._expanded_candidates(self.rec, self.parser, {}, [self.rec]))
+        early = next(r for r in variants if r.direction_name == "奥伯龙第2波换人")
+        self.assertEqual(early.strategy.turns[2].master_skills[0].swap, [2, 4])
+        self.assertEqual([s.skill for s in early.strategy.turns[2].skills if s.servant == 4], [1, 2])
+        self.assertIn(3, [s.skill for s in early.strategy.turns[3].skills if s.servant == 4])
+        self.assertTrue(any(r.slot4_backline_support == "诸葛孔明" for r in variants))
+        self.assertFalse(self.rec.strategy.turns[2].master_skills)
 
     def test_unknown_target_does_not_try_a_different_quest_as_fallback(self):
         self.rec.target_quest_id = "unknown_quest"

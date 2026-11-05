@@ -41,14 +41,21 @@ class GlobalState:
         self.solver = MasterMissionSolver()
         self.plan_mgr = BattlePlanManager()
         self.logs: List[Dict[str, str]] = []
+        self.log_cursor = 0
         self.log_lock = threading.Lock()
         self.is_running = False
         self.task_lock = threading.Lock()
         self.quest_report = None
+        self.battle_report = None
+        self.manual_report = None
+        self.active_manual_id = ''
+        self.interactive_report = None
+        self.active_interactive_id = ''
         self.cancel_event = threading.Event()
         self.last_heartbeat = time.time()
         self.latest_weekly_solution: Optional[Any] = None
         self._controller: Optional[FGOController] = None
+        self._preview_lock = threading.Lock()
         self.capturer = FGOPacketCapturer(
             port=18889,
             log_callback=lambda msg: self.add_log(msg, "info"),
@@ -171,10 +178,21 @@ class GlobalState:
     def controller(self) -> Optional[FGOController]:
         if self._controller is None:
             try:
-                self._controller = FGOController(log_callback=self.add_log)
+                self._controller = FGOController(adb_path=self.device_mgr.adb_path, log_callback=self.add_log)
             except Exception:
                 pass
         return self._controller
+
+    def capture_preview(self):
+        with self._preview_lock:
+            if self._controller is not None:
+                code, status = self.device_mgr.run_adb(['-s', self._controller.device_serial, 'get-state'], timeout=2)
+                if code != 0 or status != 'device':
+                    self._controller = None
+            ctrl = self.controller
+            if ctrl is None:
+                raise RuntimeError('没有可用的在线设备')
+            return ctrl.screencap(require_capture=True)
 
     def add_log(self, text: str, level: str = "info"):
         timestamp = time.strftime("%H:%M:%S")
@@ -184,12 +202,16 @@ class GlobalState:
                 "text": text,
                 "level": level
             })
+            self.log_cursor += 1
             if len(self.logs) > 300:
                 self.logs.pop(0)
 
-    def get_logs_since(self, index: int) -> List[Dict[str, str]]:
+    def get_logs_since(self, cursor: int) -> tuple[List[Dict[str, str]], int]:
         with self.log_lock:
-            return self.logs[index:]
+            oldest = self.log_cursor - len(self.logs)
+            if cursor > self.log_cursor:
+                cursor = oldest
+            return self.logs[max(0, cursor - oldest):], self.log_cursor
 
 
 state = GlobalState()
@@ -256,12 +278,48 @@ class MAARequestHandler(BaseHTTPRequestHandler):
             return
 
         # 1. 静态前端页面路由
+        if path == '/battlefield.css':
+            self._send_bytes(get_resource_path('web/battlefield.css').read_bytes(), 'text/css; charset=utf-8')
+            return
+
+        if path == '/api/battle-asset':
+            from src.server.battle_assets import cached_image
+            try:
+                content = cached_image(parse_qs(url.query).get('url', [''])[0])
+                self._send_bytes(content, 'image/png')
+            except Exception:
+                self._send_json({'success': False, 'message': '素材暂不可用'}, 404)
+            return
+
+        if path in ("/battle.js", "/manual.js", "/interactive.js", "/battlefield.js"):
+            self._send_bytes(get_resource_path("web"+path).read_bytes(), "application/javascript; charset=utf-8")
+            return
+
         if path == "/" or path == "/index.html":
             html_path = get_resource_path("web/index.html")
             if html_path.exists():
                 self._send_bytes(html_path.read_bytes(), "text/html; charset=utf-8")
             else:
                 self._send_json({"error": f"web/index.html not found (looked at {html_path})"}, 404)
+            return
+
+        if path.startswith('/api/interactive/'):
+            from src.server.interactive_api import handle
+            handle(self,state,path)
+            return
+
+        if path.startswith('/api/manual/'):
+            from src.server.manual_api import handle_get
+            handle_get(self,state,path,url)
+            return
+
+        if path == "/api/battle/catalog":
+            from src.workflows.battle_runner import simulation_catalog
+            self._send_json({"success": True, "quests": simulation_catalog(state.chaldea_parser)})
+            return
+
+        if path == "/api/battle/status":
+            self._send_json({"success": True, "report": getattr(state, 'battle_report', None)})
             return
 
         if path == "/api/quests/catalog":
@@ -309,17 +367,13 @@ class MAARequestHandler(BaseHTTPRequestHandler):
         # 3. 实时截屏视讯流
         if path == "/api/screen":
             try:
-                ctrl = state.controller
-                if ctrl is None:
-                    ctrl = FGOController(log_callback=state.add_log)
-                    state._controller = ctrl
-                img = ctrl.screencap()
+                img = state.capture_preview()
                 buf = io.BytesIO()
                 # 压缩为 JPEG 提高实时传输效率
                 img.convert("RGB").save(buf, format="JPEG", quality=75)
                 self._send_bytes(buf.getvalue(), "image/jpeg")
             except Exception as e:
-                self._send_json({"success": False, "error": str(e)}, 500)
+                self._send_json({"success": False, "error": str(e)}, 503)
             return
 
         # 4. 迦勒底从者与概念礼装库摘要
@@ -420,9 +474,14 @@ class MAARequestHandler(BaseHTTPRequestHandler):
         # 6. 增量日志流
         if path == "/api/logs":
             query = parse_qs(url.query)
-            since = int(query.get("since", [0])[0])
-            logs = state.get_logs_since(since)
-            self._send_json({"success": True, "logs": logs, "is_running": state.is_running})
+            try:
+                since = max(0, int(query.get("since", [0])[0]))
+            except ValueError:
+                self._send_json({"success": False, "message": "日志游标无效"}, 400)
+                return
+            logs, next_cursor = state.get_logs_since(since)
+            self._send_json({"success": True, "logs": logs, "next_cursor": next_cursor,
+                             "is_running": state.is_running})
             return
 
         self._send_json({"error": "Not Found"}, 404)
@@ -438,6 +497,16 @@ class MAARequestHandler(BaseHTTPRequestHandler):
         except Exception:
             body = {}
 
+        if path.startswith('/api/interactive/'):
+            from src.server.interactive_api import handle
+            handle(self,state,path,body)
+            return
+
+        if path.startswith('/api/manual/'):
+            from src.server.manual_api import handle_post
+            handle_post(self,state,path,body)
+            return
+
         if path == "/api/quests/sync":
             if not isinstance(body, dict) or type(body.get("force", False)) is not bool:
                 self._send_json({"success":False,"message":"刷新参数无效"},400)
@@ -449,6 +518,41 @@ class MAARequestHandler(BaseHTTPRequestHandler):
                     return
                 started = catalog_sync().start(force=body.get("force",False),log=lambda text:state.add_log(text,"info"))
             self._send_json({"success":True,"started":started, **catalog_sync().status()})
+            return
+
+        if path == "/api/battle/start":
+            from src.workflows.battle_runner import BattleRunner, resolve_battle_request
+            try:
+                request, _ = resolve_battle_request(body, state.chaldea_parser)
+            except (ValueError, TypeError) as exc:
+                self._send_json({"success": False, "message": str(exc)}, 400)
+                return
+            with state.task_lock:
+                from src.strategy.quest_catalog import catalog_sync
+                if state.is_running or catalog_sync().running:
+                    self._send_json({"success": False, "message": "已有任务或关卡库刷新正在运行"}, 409)
+                    return
+                import copy
+                account = copy.deepcopy(state.chaldea_parser)
+                state.is_running = True
+                state.cancel_event.clear()
+            state.battle_report = {"mode":"battle_lab", "status":"starting", "preview_only":not request.auto_battle, "stations":[]}
+            def battle_worker():
+                try:
+                    def update(report):
+                        state.battle_report = report
+                    report = BattleRunner(account, state.device_mgr,
+                        log_callback=lambda msg:state.add_log(msg, "info")).run(
+                            request, cancel_event=state.cancel_event, on_progress=update)
+                    state.add_log("关卡模拟与作战：" + report.status + ("：" + report.error if report.error else ""),
+                                  "success" if report.success else "error")
+                except Exception as exc:
+                    state.battle_report = {"mode":"battle_lab", "status":"failed", "error":str(exc), "stations":[]}
+                    state.add_log("关卡模拟与作战异常：" + str(exc), "error")
+                finally:
+                    state.is_running = False
+            threading.Thread(target=battle_worker, daemon=True).start()
+            self._send_json({"success": True, "message": "已开始模拟，通过后自动跳转战斗" if request.auto_battle else "已开始关卡模拟"})
             return
 
         if path in ("/api/quests/preview", "/api/quests/run", "/api/quests/first-clear/run"):

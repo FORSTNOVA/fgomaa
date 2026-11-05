@@ -72,6 +72,16 @@ class TestChapterNavigation(unittest.TestCase):
         self.assertIsNone(record_coordinate([word('主线物语 2')],'2'))
         self.assertIsNone(record_coordinate([word('主线记录 2',1400,200),word('主线记录 2',1400,600)],'2'))
 
+    def test_traum_route_uses_main_interlude_list_seen_on_device(self):
+        labels=[word('关闭',160,60),word('主线物语',1100,200),word('主线物语',1100,470),
+                word('死想显现界域',1150,570),word('Traum',1620,570)]
+        with patch.object(ScreenDetector,'run_ocr',return_value=labels):
+            self.assertEqual(ScreenDetector.detect(Image.new('RGB',(1920,1080),'white'))[0],GameScreen.MAIN_RECORD)
+        e=self.engine();nav=ChapterNavigator(e,310)
+        self.assertTrue(nav.enter([word('主线物语',1400,245)]))
+        self.assertTrue(nav.enter(labels,record=True))
+        self.assertEqual([c.args for c in e.ctrl.click.call_args_list],[(1400,245),(1385,570)])
+
     def test_part_two_and_one_point_five_lists_and_new_map_drawers_are_detected(self):
         blank=Image.new('RGB',(1920,1080),'white')
         for part,label in [('1.5','恶性隔绝魔境'),('2','地狱界曼荼罗')]:
@@ -172,7 +182,9 @@ class TestChapterNavigation(unittest.TestCase):
             self.assertTrue(all(r['supported'] and r['navigation_supported'] for r in quest_catalog(cleared)))
             self.assertEqual(len(resolve_queue([{'quest_id':str(wid),'runs':1} for wid in CHAPTERS],cleared)),14)
             cleared.quest_records={}
-            self.assertTrue(all(not r['supported'] and r['navigation_supported'] for r in quest_catalog(cleared)))
+            # 导入账号的通关记录可能滞后；目录可选性由导航适配判断，实机另行核对阶段。
+            self.assertTrue(all(r['supported'] and r['navigation_supported'] for r in quest_catalog(cleared)))
+            self.assertEqual(len(resolve_queue([{'quest_id':str(wid),'runs':1} for wid in CHAPTERS],cleared)),14)
             rows=first_clear_catalog(cleared,FirstClearOptions(war_ids=list(CHAPTERS)),ledger)
             self.assertEqual(len(rows),14);self.assertTrue(all(r['supported'] for r in rows))
 

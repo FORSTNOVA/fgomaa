@@ -2,7 +2,13 @@
   "engine": "Chaldea Laplace",
   "protocol": 4,
   "revision": "9970a57a7d150d5d551f583f6b2c4862a9f7e798",
+  "features": [
+    "manual_plan_v1",
+    "interactive_v1",
+    "interactive_v2",
+    "interactive_v3"
+  ],
   "source": "https://github.com/chaldea-center/chaldea",
-  "kernel_sha256": "0f9f94cf7e562e5cd09cb5b862a8cab45069775e72df4ce84b8b40f517899788",
-  "adapter_sha256": "4e4c0ebcc27cfa9b9d9b97472da023559e7c4976427d6f7d3842225c6241a170"
+  "kernel_sha256": "182c38c076bd7fd79dc4945f578aa12e702b7b4ede1fc361f23a74c2e0d60081",
+  "adapter_sha256": "25294160debf49c86f52a814a81a4efa871afd395711d47d3e74f4090f8ca34c"
 }

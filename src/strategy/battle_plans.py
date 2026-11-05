@@ -48,6 +48,7 @@ class TeamStrategy(BaseModel):
     name: str
     match_servants: List[str]
     required_min_np_charge: int = 0
+    mystic_code_id: Optional[int] = None
     turns: Dict[int, TurnDirective] = Field(default_factory=dict)
 
 

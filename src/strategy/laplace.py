@@ -3,19 +3,23 @@ from __future__ import annotations
 
 import copy
 from collections import Counter
+from itertools import chain
 import hashlib
+from http.client import IncompleteRead
 import json
 import os
 from pathlib import Path
 import re
+import ssl
 import subprocess
 import threading
 import time
+import urllib.error
 import urllib.request
 import uuid
 
 from src.core.path_helper import get_resource_path, get_root_dir
-from src.strategy.battle_plans import BattlePlanManager, TeamStrategy
+from src.strategy.battle_plans import BattlePlanManager, SkillAction, TeamStrategy
 
 
 def _digest(value):
@@ -63,23 +67,52 @@ class PublicData:
         if self.cancel_event is not None and self.cancel_event.is_set():
             raise LaplaceError("计算已取消")
 
-    def get(self, region, kind, identity, phase=None):
+    def download(self, path):
+        request = urllib.request.Request(f"https://api.atlasacademy.io/nice/{path}",
+                                         headers={"User-Agent": "FGO-MAA-Laplace/1"})
+        max_bytes = 15 * 1024 * 1024
+        connection_errors = (ssl.SSLError, TimeoutError, ConnectionError, IncompleteRead)
+        for attempt in range(3):
+            self.check_cancelled()
+            try:
+                with urllib.request.urlopen(request, timeout=15) as response:
+                    raw = response.read(max_bytes + 1)
+                if len(raw) > max_bytes:
+                    raise LaplaceError(f"公开游戏数据超出大小限制（{path}）")
+                self.check_cancelled()
+                return raw
+            except (urllib.error.URLError, *connection_errors) as error:
+                if isinstance(error, urllib.error.HTTPError):
+                    retryable = error.code in (429, 500, 502, 503, 504)
+                    error.close()
+                else:
+                    reason = error.reason if isinstance(error, urllib.error.URLError) else error
+                    retryable = isinstance(reason, (ssl.SSLEOFError, TimeoutError, ConnectionError, IncompleteRead))
+                    retryable |= getattr(reason, "reason", None) == "UNEXPECTED_EOF_WHILE_READING"
+                self.check_cancelled()
+                if not retryable or attempt == 2:
+                    raise LaplaceError(f"Atlas 公开数据下载失败（{path}，尝试 {attempt + 1} 次）\n{error}") from error
+            delay = 0.5 * (attempt + 1)
+            if self.cancel_event is not None:
+                self.cancel_event.wait(delay)
+            else:
+                time.sleep(delay)
+
+    def get(self, region, kind, identity, phase=None, *, lore=False):
         self.check_cancelled()
         suffix = f"_{phase}" if phase is not None else ""
+        if lore:
+            suffix += "_lore"
         file = self.root / region / kind / f"{int(identity)}{suffix}.json"
         from src.strategy.quest_catalog import catalog_sync
         stale_after = catalog_sync().snapshot().get("enemy_refresh_after",0) if kind == "quest" else 0
         if file.exists() and file.stat().st_mtime >= stale_after:
             value = json.loads(file.read_text(encoding="utf-8"))
         else:
-            url = f"https://api.atlasacademy.io/nice/{region}/{kind}/{int(identity)}"
+            path = f"{region}/{kind}/{int(identity)}"
             if phase is not None:
-                url += f"/{int(phase)}"
-            request = urllib.request.Request(url, headers={"User-Agent": "FGO-MAA-Laplace/1"})
-            with urllib.request.urlopen(request, timeout=15) as response:
-                raw = response.read(15 * 1024 * 1024 + 1)
-            if len(raw) > 15 * 1024 * 1024:
-                raise LaplaceError("公开游戏数据超出大小限制")
+                path += f"/{int(phase)}"
+            raw = self.download(path + ("?lore=true" if lore else ""))
             value = json.loads(raw)
             if not isinstance(value, dict) or value.get("id") != int(identity):
                 raise LaplaceError("公开数据的 ID 与请求不一致")
@@ -208,15 +241,17 @@ class LaplaceService:
                 row["ce"] = copy.deepcopy(equipment[slot])
             team.append(row)
         # Only the exact swap outfit is used; never treat different Mystic Codes as equivalent.
-        mc_id = 20 if swapping else None
+        mc_id = rec.strategy.mystic_code_id or (20 if swapping else None)
+        if mc_id not in (None, 20):
+            raise LaplaceError("该御主魔术礼装尚未适配自动作战")
         master_actions = any(t.master_skills for t in rec.strategy.turns.values())
-        if master_actions and not swapping:
+        if master_actions and mc_id is None:
             raise LaplaceError("推荐方案含未指定魔术礼装的御主技能，需明确礼装后才能校验")
         if mc_id:
             if parser.mystic_codes_complete and mc_id not in parser.mystic_codes:
                 raise LaplaceError("账号未持有方案所需的迦勒底战斗服")
             mc_lv = parser.mystic_codes.get(mc_id, 10)
-            assumptions.append(f"换人服使用迦勒底战斗服 Lv{mc_lv}；其他换人服不可直接替代。")
+            assumptions.append(f"御主技能绑定迦勒底战斗服 Lv{mc_lv}。")
         else:
             mc_lv = 0
         data = {"servants": list(servants.values()), "quest": quest,
@@ -242,6 +277,7 @@ class LaplaceService:
                     "quest_name": entry["name"], "spot": entry["spot"], "war": entry["war"],
                     "waves": [len(s["enemies"]) for s in quest["stages"]],
                     "assumptions": assumptions, "required_mystic_code_id": mc_id,
+                    "required_mystic_code_level": mc_lv,
                     "required_ce_id": ce.get("ce_id"), "required_ce_name": ce.get("name", "空礼装"),
                     "required_equipment": {str(slot): c["name"] for slot, c in equipment.items()},
                     "party_servant_ids": ids, "party_versions": versions}
@@ -344,6 +380,85 @@ class LaplaceService:
         return min((d["damage"] / d["hp"] for step in rec.laplace.get("steps", [])
                     for d in step.get("damage", []) if d.get("hp", 0) > 0), default=0)
 
+    def _expanded_candidates(self, base, parser, quest, tried):
+        from src.strategy.auto_team_builder import AutoTeamBuilder, SERVANT_TACTICAL_DB
+        from src.strategy.low_hp_planner import rotation_candidates
+
+        # Use the actual failed turn to prioritize variants instead of spending
+        # every fallback trial on equipment for the same high-affinity DPS.
+        loops = [rec for rec in tried if rec.direction == "Arts" and rec.battle_mode == "loop"
+                 and rec.laplace.get("steps")]
+        loops.sort(key=lambda rec: (len(rec.laplace["steps"]),
+                                    rec.laplace["steps"][-1].get("np_before_attack", 0)),
+                   reverse=True)
+        seen = set()
+        for rec in loops:
+            if rec.slot1_svt_id in seen:
+                continue
+            seen.add(rec.slot1_svt_id)
+            if len(seen) > 4:
+                break
+            third = rec.strategy.turns.get(3)
+            if third is None or 2 not in rec.strategy.turns:
+                continue
+            meta = SERVANT_TACTICAL_DB.get(rec.slot1_svt_id)
+            charge = next((s for s in third.skills if meta and s.servant == 1
+                           and s.skill == meta.self_charge_skill), None)
+            if charge and all(charge not in rec.strategy.turns[wave].skills for wave in (1, 2)
+                              if wave in rec.strategy.turns):
+                variant = rec.model_copy(deep=True)
+                variant.strategy.turns[3].skills.remove(charge)
+                variant.strategy.turns[2].skills.append(charge)
+                variant.direction_name = "打手自充提前到第2波"
+                variant.strategy.name = f"{variant.slot1_dps} · {variant.direction_name}"
+                yield variant
+            swap = next((action for action in third.master_skills if action.swap == [2, 4]), None)
+            if swap is None:
+                continue
+            supports = [(rec.slot4_backline_support, [s for s in third.skills if s.servant == 4])]
+            for sid, name, targets in ((501900, "诸葛孔明", (1, None, None)),
+                                       (403200, "莱妮丝", (None, 1, 1))):
+                profile = parser.servants.get(sid)
+                if profile and not profile.in_storage and name != rec.slot4_backline_support:
+                    supports.append((name, [SkillAction(servant=4, skill=i, target=target)
+                                            for i, target in enumerate(targets, 1)]))
+            for name, skills in supports:
+                schedules = [(2, [s for s in skills if name != "奥伯龙" or s.skill != 3]), (3, [])]
+                if name == "奥伯龙":
+                    schedules.insert(0, (2, [s for s in skills if s.skill == 1]))
+                for wave, early in schedules:
+                    if wave == 3 and name == rec.slot4_backline_support:
+                        continue
+                    # Keep the finisher for the boss and try holding the
+                    # large charge when a small second-wave top-up suffices.
+                    variant = rec.model_copy(deep=True)
+                    variant.slot4_backline_support = name
+                    turns = variant.strategy.turns
+                    turns[3].skills = [s for s in turns[3].skills if s.servant != 4]
+                    turns[3].skills.extend(skills)
+                    if wave == 2:
+                        turns[3].master_skills.remove(swap)
+                        turns[2].master_skills.append(swap)
+                        turns[2].skills.extend(early)
+                        turns[3].skills = [s for s in turns[3].skills if s not in early]
+                    variant.direction_name = f"{name}第{wave}波换人"
+                    if name == "奥伯龙" and wave == 2 and len(early) == 1:
+                        variant.direction_name += "，保留大充能"
+                    variant.strategy.name = f"{variant.slot1_dps} · {variant.direction_name}"
+                    yield variant
+
+        if max((e["hp"] for s in quest.get("stages", []) for e in s["enemies"]), default=0) > 60000:
+            yield from rotation_candidates(base, parser, quest, limit=8, expanded=True)
+
+        classes = dict(Counter(e["svt"]["className"] for s in quest.get("stages", []) for e in s["enemies"]))
+        if classes:
+            builder = AutoTeamBuilder(parser)
+            ranked = builder.recommend_for_quest(quest_id=base.target_quest_id, enemy_classes=classes)
+            attempted = {rec.slot1_svt_id for rec in tried}
+            for row in [r for r in ranked.candidate_dps_ranking if r["svt_id"] not in attempted][:4]:
+                yield builder.recommend_for_quest(quest_id=base.target_quest_id,
+                                                  enemy_classes=classes, dps_id=row["svt_id"])
+
     def validate(self, rec, parser, cancel_event=None, log=None, *, allow_rotation=True):
         from src.strategy.low_hp_planner import rotation_candidates
         log = log or (lambda message: None)
@@ -373,7 +488,8 @@ class LaplaceService:
                              "message": candidate.laplace.get("message", "")})
             return passed
 
-        for index, candidate in enumerate(candidates):
+        expanded = self._expanded_candidates(rec, parser, quest, candidates) if allow_rotation else ()
+        for index, candidate in enumerate(chain(candidates, expanded)):
             if cancel_event is not None and cancel_event.is_set():
                 rec.laplace = {"status": "cancelled", "passed": False, "message": "计算已取消"}
                 return False
@@ -422,7 +538,7 @@ class LaplaceService:
                 original_signature = recommendation_signature(rec, parser)
                 payload, metadata = self._prepare(rec, parser, cancel_event)
                 manifest = json.loads((self.runtime / "manifest.json").read_text(encoding="utf-8"))
-                key = _digest({"payload": payload, "engine": manifest})
+                key = _digest({"payload": payload, "engine": manifest, "account": original_signature})
                 result = copy.deepcopy(self._cache.get(key))
                 if result is None:
                     log(f"[Laplace] 正在按最低伤害浮动校验【{rec.quest_name}】的三回合方案…")
@@ -434,11 +550,24 @@ class LaplaceService:
                         if attempt == 3:
                             raise LaplaceError("公开技能依赖仍不完整，停止校验")
                         for url in sorted(set(missing)):
-                            match = re.fullmatch(r"https://api\.atlasacademy\.io/nice/(JP|CN)/skill/(\d+)", url)
+                            match = re.fullmatch(r"https://api\.atlasacademy\.io/nice/(JP|CN)/(skill|common-release)/(\d+)", url)
                             if not match:
-                                raise LaplaceError("缺少当前计算组件不支持的游戏数据依赖")
-                            skill = self.data.get(match[1], "skill", int(match[2]))
-                            payload["data"]["base_skills"].append(skill)
+                                raise LaplaceError(f"不支持的模拟数据依赖：{url}")
+                            region, kind, identity = match.groups()
+                            if kind == "skill":
+                                payload["data"]["base_skills"].append(self.data.get(region, kind, int(identity)))
+                            else:
+                                from src.strategy.battle_ai_data import BattleAIData
+                                releases = BattleAIData(self.data, region).get(kind, int(identity))
+                                payload["data"].setdefault("common_releases", {})[f"{region}/{identity}"] = releases
+                                records = payload["data"].setdefault("release_quest_records", {})
+                                for release in releases:
+                                    if release["condType"] in ("questClear", "questClearPhase"):
+                                        quest_id = release["condId"]
+                                        record = parser.quest_records.get(quest_id)
+                                        if record is None and not parser.quest_records_complete:
+                                            raise LaplaceError(f"缺少解锁条件所需的任务记录：{quest_id}")
+                                        records[str(quest_id)] = record or {}
                     if result.get("success"):
                         if len(self._cache) >= 16:
                             self._cache.pop(next(iter(self._cache)))
@@ -474,7 +603,8 @@ class LaplaceService:
                 rec.waves = metadata["waves"]
                 rec.direction_reason = rec.direction_reason.replace(rec.enemy_class_cn, metadata["enemy_class_cn"])
                 rec.enemy_class_cn = metadata["enemy_class_cn"]
-                rec.mystic_code = "迦勒底战斗服 Lv10" if metadata["required_mystic_code_id"] else "不使用御主技能"
+                rec.mystic_code = (f"迦勒底战斗服 Lv{metadata['required_mystic_code_level']}"
+                                   if metadata["required_mystic_code_id"] else "不使用御主技能")
                 manager = BattlePlanManager()
                 rec.turn_descriptions = {t: manager.format_turn_instructions(rec.strategy, t) for t in rec.strategy.turns}
                 rec.laplace = {**metadata, "status": "passed", "passed": True, "engine": "Chaldea Laplace",

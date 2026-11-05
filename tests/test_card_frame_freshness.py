@@ -30,5 +30,11 @@ class TestCardFrameFreshness(unittest.TestCase):
         self.assertEqual([c.args[:2] for c in self.ctrl.click.call_args_list],
                          [(1725,900),(700,320),(1762,750),(225,750)])
 
+    def test_recorded_chain_keeps_np_order_and_chooses_normal_card_from_live_hand(self):
+        with patch('src.core.controller.AnchorVerifier.is_card_select_back_button_present', return_value=True):
+            self.assertTrue(self.ctrl.play_recorded_cards((3, None, 1), ('Quick', 'Buster', 'Arts')))
+        self.assertEqual([c.args[:2] for c in self.ctrl.click.call_args_list],
+                         [(1725, 900), (1220, 320), (1762, 750), (700, 320)])
+
 
 if __name__=='__main__':unittest.main()

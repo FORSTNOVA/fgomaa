@@ -8,7 +8,7 @@ import 'facecard_proof.dart';
 Map<String, dynamic> inputData = {};
 Map<String, dynamic> readData(String name) => Map<String, dynamic>.from(inputData[name] as Map);
 
-Future<Map<String, dynamic>> simulate(Map<String, dynamic> request, Map<String, dynamic> scenario) async {
+Future<BattleData> initializeBattle(Map<String, dynamic> request, Map<String, dynamic> scenario) async {
   final team = <PlayerSvtData>[];
   for (final item in request['team'] as List) {
     final p = PlayerSvtData.id(item['svt_id'] as int)
@@ -16,7 +16,7 @@ Future<Map<String, dynamic>> simulate(Map<String, dynamic> request, Map<String, 
       ..tdLv = item['np_lv'] as int
       ..atkFou = item['atk_fou'] as int
       ..hpFou = item['hp_fou'] as int
-      ..limitCount = item['ascension'] as int
+      ..limitCount = (item['battle_chara_id'] ?? item['ascension']) as int
       ..skillLvs = [item['skill_lv1'], item['skill_lv2'], item['skill_lv3']].cast<int>()
       ..appendLvs = (item['append_levels'] as List).cast<int>();
     if (p.appendLvs.length != 5) throw StateError('Expected five append skill levels');
@@ -36,6 +36,9 @@ Future<Map<String, dynamic>> simulate(Map<String, dynamic> request, Map<String, 
   }
   final battle = BattleData();
   battle.options.random = scenario['random'] as int;
+  battle.options.simulateEnemy = scenario['simulateEnemy'] == true;
+  final setup=scenario['setup'];
+  if(setup!=null)(setup as void Function(BattleData))(battle);
   final mc = MysticCodeData()
     ..mysticCode = db.gameData.mysticCodes[request['mystic_code_id']]
     ..level = request['mystic_code_lv'] as int;
@@ -45,6 +48,11 @@ Future<Map<String, dynamic>> simulate(Map<String, dynamic> request, Map<String, 
     throw StateError('Quest identity or enemy data incomplete');
   }
   await battle.init(quest, team, mc);
+  return battle;
+}
+
+Future<Map<String, dynamic>> simulate(Map<String, dynamic> request, Map<String, dynamic> scenario) async {
+  final battle = await initializeBattle(request, scenario);
   final steps = <Map<String, dynamic>>[];
   final actions = <Map<String, dynamic>>[];
   final failedChargers = <String>{};
@@ -144,13 +152,15 @@ Future<Map<String, dynamic>> simulate(Map<String, dynamic> request, Map<String, 
     final plannedNp = dps.np;
     if (scenario['dynamic'] == true && request['battle_mode'] != 'rotation' && dps.np < 10000) {
       for (final pair in [[3, 2], [2, 2], [3, 1], [2, 1], [1, 2], [3, 3], [2, 3]]) {
-        final key = '${pair[0]}-${pair[1]}';
         if (dps.np >= 10000) break;
         final actor = battle.onFieldAllyServants[pair[0] - 1];
-        if (actor == null || failedChargers.contains(key) || forbidden(actor.startingPosition, pair[1], wave)) continue;
+        if (actor == null) continue;
+        final slot = actor.startingPosition;
+        final key = '$slot-${pair[1]}';
+        if (failedChargers.contains(key) || forbidden(slot, pair[1], wave)) continue;
         if (actor.skillInfoList[pair[1] - 1].chargeTurn > 0) continue;
         final before = dps.np;
-        await cast(pair[0], pair[1], 1, wave, dynamic: true);
+        await cast(slot, pair[1], 1, wave, dynamic: true);
         if (dps.np == before) failedChargers.add(key);
       }
     }

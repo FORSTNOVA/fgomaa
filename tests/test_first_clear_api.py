@@ -55,8 +55,8 @@ class TestFirstClearAPI(unittest.TestCase):
                 self.assertTrue(response.args[0]['success'])
                 self.assertEqual(catalog.call_args.args[1].war_ids,[wid])
 
-    def test_old_manual_queue_still_rejects_unverified_uncleared_quests(self):
-        with patch('src.workflows.quest_runner.resolve_queue',side_effect=ValueError('uncleared')):
+    def test_manual_queue_still_rejects_unknown_quests(self):
+        with patch('src.workflows.quest_runner.resolve_queue',side_effect=ValueError('unknown')):
             response=self.request('/api/quests/run',{'queue':[{'quest_id':'unknown','runs':1}]})
         self.assertEqual(response.args[1],400)
 
@@ -75,6 +75,19 @@ class TestFirstClearAPI(unittest.TestCase):
         options=captured['options']
         self.assertIsNone(options.max_quests);self.assertIsNone(options.ap_budget);self.assertIsNone(options.max_apples)
         self.assertEqual(options.refill_apple,'silver')
+
+    def test_more_than_thirty_quests_reaches_worker(self):
+        captured={};finished=threading.Event()
+        def run(options,**kwargs):
+            captured['options']=options;finished.set()
+            return SimpleNamespace(success=True,error='')
+        with patch('src.workflows.first_clear_runner.FirstClearRunner') as runner:
+            runner.return_value.run.side_effect=run
+            response=self.request('/api/quests/first-clear/run',{'device_serial':'target','options':{'max_quests':500}})
+            self.assertTrue(response.args[0]['success']);self.assertTrue(finished.wait(1))
+            deadline=time.monotonic()+1
+            while self.state.is_running and time.monotonic()<deadline:time.sleep(.01)
+        self.assertEqual(captured['options'].max_quests,500)
 
     def test_start_worker_and_stop_keep_global_exclusion_until_worker_exits(self):
         entered=threading.Event();release=threading.Event();captured={}

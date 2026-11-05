@@ -7,41 +7,31 @@ import threading
 import time
 import uuid
 from pathlib import Path
-from typing import Literal
 
-from pydantic import BaseModel,ConfigDict,Field,field_validator,model_validator
+from pydantic import Field,field_validator
 
 from src.core.path_helper import get_root_dir
+from src.core.atomic_io import replace_file
 from src.core.controller import FGOController
 from src.core.device_manager import DeviceManager
 from src.strategy.smart_engine import SmartEngine
 from src.strategy.ap_recovery import AppleRecovery,AppleLimitReached
 from src.strategy.quest_battle import QuestBattleExecutor
 from src.strategy.first_clear_progress import inspect_free_quest
+from src.strategy.first_clear_navigation import FirstClearNavigator
 from src.strategy.quest_catalog import quest_bindings,quest_binding
 from src.strategy.chapter_navigation import NAVIGATION_WARS
 from src.strategy.event_navigation import EVENT_WARS,supports_navigation as supports_event
-from src.workflows.quest_runner import QuestRunReport,QuestTarget,quest_catalog,quest_cleared
+from src.workflows.resource_options import ResourceOptions
+from src.workflows.quest_runner import QuestRunReport,QuestTarget,quest_catalog
 
 
 FIRST_CLEAR_WARS=NAVIGATION_WARS | EVENT_WARS
 
 
-class FirstClearOptions(BaseModel):
-    model_config=ConfigDict(extra='forbid',strict=True)
+class FirstClearOptions(ResourceOptions):
+    max_quests:int | None=Field(default=3,ge=1)
     war_ids:list[int]=Field(default_factory=list,max_length=len(FIRST_CLEAR_WARS))
-    max_quests:int|None=Field(default=3,ge=1,le=30)
-    ap_budget:int|None=Field(default=100,ge=1,le=999)
-    refill_apple:Literal['none','bronze','blue','silver','gold']='none'
-    max_apples:int|None=Field(default=0,ge=0,le=999)
-
-    @model_validator(mode='after')
-    def bounded_apple_usage(self):
-        if self.refill_apple=='none' and self.max_apples!=0:
-            raise ValueError('禁用果实恢复时使用上限须为0')
-        if self.refill_apple!='none' and self.max_apples==0:
-            raise ValueError('启用果实恢复须设置1至999个上限，或null表示不限')
-        return self
 
     @field_validator('war_ids')
     @classmethod
@@ -87,7 +77,7 @@ class FirstClearLedger:
         self.file.parent.mkdir(parents=True,exist_ok=True)
         temp=self.file.with_suffix('.'+uuid.uuid4().hex+'.tmp')
         temp.write_text(json.dumps(self.data,ensure_ascii=False,indent=2),encoding='utf-8')
-        temp.replace(self.file)
+        replace_file(temp,self.file)
 
     def observation(self,qid):return self.data['observations'].get(str(qid))
 
@@ -104,6 +94,14 @@ class FirstClearLedger:
         self.save()
 
 
+def quest_cleared(parser, quest_id, phase):
+    record = getattr(parser, 'quest_records', {}).get(quest_id, {})
+    try:
+        return int(record.get('clearNum', 0)) > 0 and int(record.get('questPhase', 0)) >= phase
+    except (TypeError, ValueError):
+        return False
+
+
 def first_clear_catalog(parser,options,ledger):
     entries=quest_bindings();by_id={e['id']:e for e in entries.values()}
 
@@ -118,9 +116,10 @@ def first_clear_catalog(parser,options,ledger):
         if row['kind'] not in ('free','event') or row.get('war_id') not in FIRST_CLEAR_WARS:continue
         if options.war_ids and row['war_id'] not in options.war_ids:continue
         entry=entries[row['quest_id']];observation=ledger.observation(entry['id'])
-        reason=row['reason'] if row['reason']!='账号尚无该阶段已通关记录' else ''
+        account_cleared=quest_cleared(parser,entry['id'],entry['phase'])
+        reason=row['reason']
         if not reason and not getattr(parser,'quest_records_complete',False):reason='请先导入完整的账号任务记录'
-        if not reason and (row['cleared'] or (observation and observation.get('completed'))):reason='已完成首次攻略'
+        if not reason and (account_cleared or (observation and observation.get('completed'))):reason='已完成首次攻略'
         if not reason and entry.get('phases') not in ([1],[1,2,3]):reason='首次攻略阶段布局尚未适配'
         if not reason and entry.get('after_clear')!='repeatLast':reason='该自由关卡不是普通可重复关卡'
         if not reason:
@@ -130,7 +129,7 @@ def first_clear_catalog(parser,options,ledger):
                     continue
                 if condition.get('type')!='questClear' or not cleared(condition.get('targetId')):
                     reason='开放条件尚无完整通关证据';break
-        rows.append({**row,'supported':not reason,'reason':reason,'progress':observation,
+        rows.append({**row,'cleared':account_cleared,'supported':not reason,'reason':reason,'progress':observation,
                      'phase_verification_required':True})
     rows.sort(key=lambda r:(not r['supported'],r['ap_per_run'] if r['ap_per_run'] is not None else 999,
                             r['war_id'],r['game_id']))
@@ -155,7 +154,7 @@ class FirstClearRunner:
 
         def save():
             data=report.model_dump(mode='json');temp=folder/'report.tmp'
-            temp.write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding='utf-8');temp.replace(folder/'report.json')
+            temp.write_text(json.dumps(data,ensure_ascii=False,indent=2),encoding='utf-8');replace_file(temp,folder/'report.json')
             if on_progress:on_progress(data)
 
         def log(text):report.logs.append(text);self.log_callback(text)
@@ -184,13 +183,15 @@ class FirstClearRunner:
                                cancel_event=cancel_event,log_callback=log)
             engine=SmartEngine(ctrl,chaldea_parser=self.parser,cancel_event=cancel_event,log_callback=log)
             engine.quest_progress_callback=stage;engine.first_clear_observation_dir=folder/'observations'
+            navigator=FirstClearNavigator(engine)
             while options.max_quests is None or report.confirmed_quests<options.max_quests:
                 cancelled();active=phase_row=None;stage('selecting')
                 candidates=[r for r in first_clear_catalog(self.parser,options,ledger) if r['supported']]
                 if not candidates:
                     report.status='completed';report.success=True
                     log('[首通完成] 当前范围没有符合条件的未通关普通自由关卡。');break
-                candidate=candidates[0];key=candidate['quest_id'];entry=quest_binding(key)
+                candidate=navigator.select(candidates) if not options.war_ids else candidates[0]
+                key=candidate['quest_id'];entry=quest_binding(key)
                 entry={**entry,'spot':candidate['spot']}
                 active={'target':{**candidate,'runs':len(entry['phases'])},'status':'observing','clears':0,'phases':[]}
                 report.stations.append(active);phase_row=None
@@ -272,9 +273,15 @@ class FirstClearRunner:
                     if after['quest_id']!=entry['id'] or after['next_phase']!=expected or after['completed']!=(expected is None):
                         raise RuntimeError('战后未确认准确的阶段前进，禁止继续下一阶段或关卡')
                     ledger.observe(after);phase_row['progress_verified']=True;phase_row['status']='completed'
-                    report.confirmed_phases+=1;active['observation']=after;before=after;save()
-                active['status']='completed';report.confirmed_quests+=1;phase_row=None;save()
-                log(f"[首通整关完成] 已核对【{entry['name']}】全部阶段完成，继续选择下一关。")
+                    report.confirmed_phases+=1;active['observation']=after;before=after
+                    if not after['completed']:
+                        log(f"[首通进度] 【{entry['name']}】第 {phase} 阶段完成。本次已通关 "
+                            f"{report.confirmed_quests} 关，已确认 {report.confirmed_phases} 个阶段。")
+                    save()
+                active['status']='completed';report.confirmed_quests+=1;phase_row=None
+                log(f"[首通整关完成] 【{entry['name']}】全部阶段完成。本次已通关 "
+                    f"{report.confirmed_quests} 关，已确认 {report.confirmed_phases} 个阶段。")
+                save()
             else:
                 report.status='completed';report.success=True;log('[首通完成] 已达到本次整关数量上限。')
         except Exception as exc:
@@ -293,7 +300,10 @@ class FirstClearRunner:
             if ctrl is not None:
                 try:ctrl.screencap(force_fresh=True).save(folder/'stopped.png')
                 except Exception:pass
-        finally:save()
+        finally:
+            log(f"[首通统计] 本次已通关 {report.confirmed_quests} 关，"
+                f"已确认 {report.confirmed_phases} 个阶段，战斗胜利 {report.confirmed_clears} 场。")
+            save()
         return report
 
 

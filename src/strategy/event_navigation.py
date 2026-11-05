@@ -22,9 +22,9 @@ def supports_navigation(entry):
             and entry.get('id') in FARM_QUESTS and entry.get('after_clear')=='repeatLast')
 
 
-def resolve_spot(entry, quest_cleared):
-    """活动限定改名；仅有准确前置通关证据时使用新亚马逊平原。"""
-    if supports_navigation(entry) and entry.get('spot_id')==919501 and quest_cleared(94150001,1):
+def resolve_spot(entry):
+    """该周回本解锁时地图已改名，导航时仍需在实机找到目标卡片。"""
+    if supports_navigation(entry) and entry.get('spot_id')==919501:
         return {**entry,'spot':'新亚马逊平原'}
     return entry
 
@@ -72,7 +72,10 @@ def matches_map_image(image):
 def map_identity(ocr,image=None):
     headers=[text for box,text,score in ocr if float(score)>=.55
              and 950<=sum(p[0] for p in box)/4<=1920 and sum(p[1] for p in box)/4<170]
-    if chapter_id(''.join(headers)) or matches_map_image(image):
+    labels={normalize(text) for _,text,score in ocr if float(score)>=.55}
+    warehouse_map=(bool({'管理室','关闭'} & labels)
+                   and {'活动报酬','第一仓储库','第二仓储库'}.issubset(labels))
+    if chapter_id(''.join(headers)) or warehouse_map or matches_map_image(image):
         return '万圣节星球',TITLE
     return None
 

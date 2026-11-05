@@ -6,6 +6,7 @@ Smart Perception-driven FGO Automation Engine
 """
 
 from __future__ import annotations
+import re
 import time
 from typing import Optional, Callable, Dict, Any, List, Tuple
 from PIL import Image
@@ -1509,6 +1510,7 @@ class SmartEngine:
         spot_short = spot_name.split("(")[0].strip()
         selected_target_card = False
         opened_target_spot = False
+        drawer_scans = 0
 
         for step in range(max_steps):
             if self.is_cancelled():
@@ -1571,7 +1573,17 @@ class SmartEngine:
 
             q_pos = None
             if is_map_matched:
-                q_pos = self._named_free_quest_card(ocr_results, quest_name, check_ap=not inspect_only)
+                if event:
+                    from src.strategy.first_clear_progress import quest_title_rows
+                    rows = quest_title_rows(ocr_results,quest_name)
+                    if len(rows)==1 and any(
+                            rows[0]+60<sum(p[1] for p in box)/4<rows[0]+160
+                            and 1120<sum(p[0] for p in box)/4<1340
+                            and re.fullmatch(r'AP\s*\d+',text)
+                            for box,text,score in ocr_results if float(score)>=.55):
+                        q_pos=(1450,int(rows[0]))
+                else:
+                    q_pos = self._named_free_quest_card(ocr_results, quest_name, check_ap=not inspect_only)
                 if q_pos is None and opened_target_spot and not inspect_only:
                     q_pos = self._single_free_quest_card(ocr_results, quest_name)
                     if q_pos:
@@ -1628,6 +1640,15 @@ class SmartEngine:
                 # 当前大地图匹配目标章节！寻找目标地点 (Spot)
                 drawer_close = ScreenDetector.find_text_coordinate(ocr_results, "关闭", region=(0, 0, 350, 150))
                 if drawer_close:
+                    if inspect_only and opened_target_spot:
+                        if drawer_scans >= 6:
+                            self.log('[阶段核对停止] 已扫描目标地点的关卡列表，仍未找到准确标题，不重复关闭重开。')
+                            return False
+                        drawer_scans += 1
+                        self.log('[首通卡片列表] 目标地点已展开，滚动查找当前阶段对应的准确关卡。')
+                        self.ctrl.swipe(1500,790,1500,350,duration_ms=350)
+                        time.sleep(.6)
+                        continue
                     self.log("  [地图校正] 当前展开的关卡未匹配目标，先关闭抽屉再定位地点。")
                     self.ctrl.click(*drawer_close, delay_after=0.8)
                     opened_target_spot = False
@@ -1647,6 +1668,8 @@ class SmartEngine:
                         break
 
                 if spot_pos:
+                    if event and spot_short=='第二仓储库':
+                        spot_pos=(spot_pos[0],spot_pos[1]-128)
                     if spot_pos[1] < 110:
                         self.log(f"  [视野微调] 目标地点【{spot_name}】偏上方 ({spot_pos})，向下拉动地图使其居中...")
                         self.ctrl.swipe(1000, 300, 1000, 600, duration_ms=400)

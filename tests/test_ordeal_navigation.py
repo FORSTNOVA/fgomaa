@@ -135,7 +135,7 @@ class TestOrdealNavigation(unittest.TestCase):
         x,y,end_x,end_y=e.ctrl.swipe.call_args.args
         self.assertGreater(end_x,x);self.assertLess(end_y,y)
 
-    def test_ordeal_queue_keeps_resource_and_progress_guards(self):
+    def test_ordeal_queue_keeps_resource_guards_without_requiring_clear_records(self):
         base={'id':93040201,'phase':3,'name':'隔离设施','spot':'修理部郊外','war':CHAPTERS[402][0],
               'kind':'free','war_id':402,'event_id':0,'consume_type':'ap','ap':21}
         parser=SimpleNamespace(servants={1:object()},quest_records={93040201:{'clearNum':1,'questPhase':3}})
@@ -144,7 +144,7 @@ class TestOrdealNavigation(unittest.TestCase):
                 self.assertEqual(quest_catalog(parser)[0]['supported'],supported)
         parser.quest_records={}
         with patch('src.strategy.quest_catalog.quest_bindings',return_value={'target':base}):
-            with self.assertRaises(ValueError):resolve_queue([{'quest_id':'target','runs':1}],parser)
+            self.assertEqual(len(resolve_queue([{'quest_id':'target','runs':1}],parser)),1)
 
     def test_hall_globe_map_card_support_chain_never_clicks_support_or_start(self):
         e=SmartEngine(MagicMock(cancel_event=None),log_callback=lambda _:None)

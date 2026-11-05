@@ -20,6 +20,40 @@
 
 ## 构建
 
+### 手动方案运行时
+
+`manual_simulator.dart` 提供独立的六人手动入口，运行时清单须含 `manual_plan_v1`。沿用协议4，以 `mode: manual` 分流，原自动推荐不受影响。请求包含按槽位排列的5名自有角色＋1名自定义助战、各自礼装、明确的御主礼装及逐回合有序行动。
+
+手动模式不运行动态补充充能，不修改行动顺序；技能和御主技能可交错，换人后继续追踪原槽位角色。每回合支持1～3张宝具按顺序组成连锁，或保守证明的任意三卡普攻。冷却、未解锁、角色不在场、NP不足或未适配选择分支会停止并报告具体行动。最多30回合，仅模拟己方行动，最低伤害浮动0.9，不包含敌方攻击；手动结果不能作为自动出击校验。
+
+Python 侧 `src/strategy/manual_simulation.py` 从账号取实际自有练度和礼装，按用户自定义参数构造助战，所有技能／宝具版本仍须匹配该角色的公开数据。保存原始手动方案，不将自动编译方案覆盖回输入。修改输入时取消独立任务，结果摘要与本次输入严格绑定。
+
+### 逐步战场与语义录制
+
+`src/strategy/interactive_simulation.py` 将进场配置准备成冻结的六人 payload，保存本地快照；每次点击都以同一快照重放已接受的事件前缀。事件包括技能／御主技能、敌方目标、进入选卡／返回技能、选择宝具、确认宝具链、保守普攻。`manual_simulator.dart` 在 `interactive: true` 时允许最后一个回合暂未攻击，并返回完整 `scene`；清单须含 `interactive_v1`。没有自动补充充能或跳过失败操作。
+
+场景包括前后排与原槽位映射、HP／NP、技能名称／冷却／可用性、当前效果、敌方HP、御主技能、波次、阶段、所选宝具顺序及上次攻击的逐目标伤害／回收／Overkill。失败返回 `accepted: false`，客户端保持上一步。战斗结束后不能继续追加操作。
+
+`web/interactive.js` 的时间线同时记录 setup／enter／event，保存当前位置与重做分支。回退恢复同一快照的场景，换配置则开启新的进场段；载入录制或引擎哈希变化时重放当前段。API `/api/interactive/{enter,replay,status,stop,save,recordings,runtime}` 与其它工作流共用任务互斥，取消须匹配独立任务ID，直到原worker退出才释放。
+
+录制和进场数据仅存本地 `.app_profile/interactive_simulation/`，不随公开包分发。此功能参考语义操作列表的编排方式，未嵌入 FGA Android 操作引擎，也未复制未公开的 BBChannel 实现。不录制实机触摸，不用于实机自动出击许可。
+
+version2及之后的进场快照冻结敌方完整servant模型和31位随机种子，原生`interactive_simulator.dart`处理原始事件。牌组用独立、显式xorshift32和Fisher-Yates洗牌，每回合取五张，整手弃掉，用尽后重洗；进入选卡／返回／选中卡片不消耗随机流。位置卡ID保持御主换人时的卡位继承，原编队角色退场（包括宝具自退）后标记重洗，跨敌方回合仍保留标记。敌方行动与发牌使用独立随机流，回退／重载复算同一前缀保持相同结果。
+
+普通卡事件`card {card:1..5}`与`np {actor:1..6}`共用三卡有序选择，`unselect`撤销最后一张，`back`清空选卡返回技能，`attack`必须正好三张。直接构造Laplace的`CombatAction`，由引擎处理首卡、同色链、Extra、暴击、死亡后跳过无效卡、逐目标伤害和NP。预览的集星增益在独立战斗副本上计算，避免查看概率消耗实际效果。暴击分星基于集星权重、随机加权与每卡10星上限；旧version2的其他概率效果仍采用固定阈值、伤害0.9。
+
+初始化前启用`simulateEnemy`以加载已冻结的敌人卡片模型。己方攻击未清场时停在enemy阶段；`enemy_step`执行一次行动，`enemy_turn`完成剩余行动。旧version2采用基础普攻／满蓄力宝具策略。回合末使用`endEnemyActions`结算NP／效果／补位和下回合；场景含退场角色、受击NP、敌方蓄力、近四次攻击、当前手牌和已选混排顺序。
+
+已有version1快照仍走原手动前缀引擎，不改变其发牌和敌方规则。`tests/test_interactive_turns.py`验证混排、Brave/Extra、三轮穷尽牌组、同色链、受击NP、敌方满蓄力宝具、退场/全灭、阿拉什自退、固定随机结果、选卡撤销和保存游标。
+
+新进场默认version3，清单需有`interactive_v3`。`battle_ai_data.py`从Atlas的`ai/svt`、`ai/field`、`ai-act`、`battle-script`和`common-release`端点递归冻结依赖到同一快照；原生重放不请求这些端点。首次计算补充的技能也写回快照，避免后续刷新改变已用数据。图超过256项／10000节点、身份不符、缺数据时停止。
+
+`enemy_ai.dart`解析普通和反应AI：条件过滤、最高优先级、正权重随机、`avals`思考跳转、指定／随机技能、QAB／暴击普攻与NP。条件包括HP、回合、行动次数、NP／蓄力、队伍人数、特性／效果、己方技能／NP次数、战斗变量和可证实的任务解锁；支持场地与单位的回合、技能、宝具目标、指令卡、入场、退场、换血条等时机。BattleScript按playOrder／idx顺序执行aiAct、一次性标记及表现命令，支持技能、战斗变量和强制胜负；递归超过32层或思考超过64层报错。敌方仍按全队最多3次和各单位minActNum／maxActNum分配行动，不是完整服务器调度的复刻。
+
+`engine_patches.py`对锁定版本的五个引擎文件安装可复现钩子，构建时核验锚点，支持从干净上游重复应用。`engine_hooks.dart`仅在version3绑定：每次伤害计算按目标从ConstData的`attackRateRandomMin`（900，含）到`attackRateRandomMax`（1100，不含）均匀取整数，同次多段沿用该倍率；概率按千分率使用另一个显式种子流。伤害／AI选择／概率／发牌相互分流，同一快照与事件前缀在回退、保存、重载后结果一致。旧版本与自动／批量手动模拟不绑定这些钩子，保留原规则；记录同一倍率不代表复制游戏服务器真实随机种子。
+
+界面显示逐目标`random_milli`、敌方效果和最近40条AI／脚本轨迹，完整场景保留伤害乱数。尚未支持的条件、行动参数、技能效果、目标规则、Script命令会按节点报错，不用普攻代替；例如`skillIdCheckbuff`、随机行动类型、非默认OC／未匹配NP版本、`buffActive`目标和其他服务器专有机制仍需逐项适配。`tests/test_battle_ai.py`分别覆盖公开AI图与合成的技能、HP分支、场地、脚本、变量、换血条、固定伤害、保存回退、未知节点及循环阻断。合成耐久数据仅在隔离测试快照中，不能当作真实关卡实战验收。
+
 ```powershell
 python scripts/build_laplace.py --source <已完成 flutter pub get 的 Chaldea 源码目录> --publish
 ```

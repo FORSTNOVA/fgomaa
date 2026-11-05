@@ -4,9 +4,11 @@ import 'dart:ui';
 
 import 'package:flutter/widgets.dart';
 import 'package:chaldea/generated/l10n.dart';
+import 'package:chaldea/app/api/atlas.dart';
 import 'package:chaldea/models/models.dart';
 
 import 'simulator.dart';
+import 'manual_simulator.dart';
 
 final missingData = <String>{};
 
@@ -38,6 +40,8 @@ Future<void> main() async {
     await db.initiateForTest(testAppPath: '${jobFile.parent.path}/runtime');
     HttpOverrides.global = LocalDataOnly();
     inputData = Map<String, dynamic>.from(job['data'] as Map);
+    AtlasApi.frozenCommonReleases = Map<String, dynamic>.from(inputData['common_releases'] as Map? ?? {});
+    AtlasApi.frozenReleaseQuestRecords = Map<String, dynamic>.from(inputData['release_quest_records'] as Map? ?? {});
     db.gameData = GameData(
       servants: [for (final s in inputData['servants'] as List) Servant.fromJson(Map<String, dynamic>.from(s))],
       craftEssences: [for (final ce in inputData['craft_essences'] as List) CraftEssence.fromJson(Map<String, dynamic>.from(ce))],
@@ -47,6 +51,14 @@ Future<void> main() async {
     );
     final request = Map<String, dynamic>.from(job['request'] as Map);
     if (request['protocol'] != 4) throw StateError('Account simulation protocol mismatch');
+    if (request['mode'] == 'manual') {
+      final result = await simulateManual(request);
+      output.writeAsStringSync(jsonEncode({
+        'job_id':job['job_id'], 'input_digest':job['input_digest'], 'mode':'manual',
+        'success':missingData.isEmpty, 'missing_data':missingData.toList(), 'manual':result,
+      }));
+      exit(0);
+    }
     var proposal = await simulate(request, {'name': 'proposal', 'random': 900, 'dynamic': true, 'guards': true});
     final normalProbe = proposal;
     if (proposal['success'] != true && request['allow_facecards'] == true) {

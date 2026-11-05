@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import gzip
+from functools import lru_cache
 import hashlib
 import json
 from pathlib import Path
@@ -70,6 +71,7 @@ def normalize_export(wars):
                          'war':' '.join(war.get('longName', war.get('name','')).split()),
                          'war_id':war['id'], 'spot_id':spot['id'], 'kind':kind,
                          'quest_type':quest.get('type','unknown'), 'event_id':war.get('eventId',0),
+                         'recommend_lv':quest.get('recommendLv',''),
                          'after_clear':quest.get('afterClear',''), 'consume_type':quest.get('consumeType',''),
                          'ap':quest.get('consume') if quest.get('consumeType') == 'ap' else None,
                          'opened_at':quest.get('openedAt',0), 'closed_at':quest.get('closedAt',0),
@@ -225,11 +227,27 @@ def catalog_sync():
     return _default
 
 
+@lru_cache(maxsize=1)
+def _bundled_event_bindings():
+    from src.strategy.event_navigation import HALLOWEEN_WAR, supports_navigation
+    path = get_resource_path(f'data/laplace/public/CN/war/{HALLOWEEN_WAR}.json')
+    if not path.is_file():
+        return {}
+    entries = normalize_export([json.loads(path.read_text(encoding='utf-8'))])
+    return {key:{**entry, 'source':f'https://api.atlasacademy.io/nice/CN/war/{HALLOWEEN_WAR}'}
+            for key, entry in entries.items() if supports_navigation(entry)}
+
+
 def quest_bindings():
     """内置别名保持不变；新增关卡使用稳定的atlas_cn_游戏ID键。"""
     base = json.loads(get_resource_path('data/laplace/quests.json').read_text(encoding='utf-8'))
     entries = catalog_sync().snapshot().get('entries', {})
     result = dict(entries)
+    for key, bundled in _bundled_event_bindings().items():
+        if key not in result:
+            result[key] = bundled.copy()
+        elif 'recommend_lv' not in result[key]:
+            result[key] = {**result[key], 'recommend_lv':bundled['recommend_lv']}
     for key, entry in base.items():
         remote_key = f"atlas_cn_{entry['id']}"
         remote = entries.get(remote_key)

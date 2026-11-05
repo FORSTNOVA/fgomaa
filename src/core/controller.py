@@ -42,7 +42,10 @@ class FGOController:
         self.cancel_event = cancel_event
 
         if not device_serial:
-            devs = device_mgr.get_connected_devices(auto_connect=True)
+            devices = device_mgr.get_connected_devices(auto_connect=False, include_resolution=False)
+            if not any(device.is_emulator and device.state == "device" for device in devices):
+                devices = device_mgr.get_connected_devices(auto_connect=True, include_resolution=False)
+            devs = [device for device in devices if device.state == "device"]
             if not devs:
                 raise RuntimeError("未检测到任何已连接的设备或模拟器！")
             self.device_serial = devs[0].serial
@@ -83,7 +86,7 @@ class FGOController:
 
     def _get_screen_size(self) -> Tuple[int, int]:
         cmd = [self.adb_path, "-s", self.device_serial, "shell", "wm", "size"]
-        res = self._run_cmd(cmd, text=True)
+        res = self._run_cmd(cmd, timeout=5, text=True)
         import re
         match = re.search(r"(\d+)x(\d+)", res.stdout)
         if match:
@@ -135,7 +138,7 @@ class FGOController:
 
     # ==================== MAA 规范：内存级极速 Raw Screencap 与消抖检测 ====================
 
-    def screencap(self, force_fresh: bool = False, wait_still: bool = False) -> Image.Image:
+    def screencap(self, force_fresh: bool = False, wait_still: bool = False, *, require_capture: bool = False) -> Image.Image:
         """
         MAA 同款内存无损截屏 (ScreencapRaw)
         1. 纯内存管道读取原始未压缩 RGBA 数据流，零磁盘 IO；
@@ -162,7 +165,7 @@ class FGOController:
                 res = self._run_cmd(cmd, timeout=5)
                 raw_data = res.stdout
 
-                if len(raw_data) >= 16:
+                if res.returncode == 0 and len(raw_data) >= 16:
                     w, h, fmt = struct.unpack("<III", raw_data[:12])
                     expected_payload = w * h * 4
                     # 检查字节长度是否完整
@@ -179,7 +182,7 @@ class FGOController:
                 cmd_fallback = [self.adb_path, "-s", self.device_serial, "exec-out", "screencap", "-p"]
                 res = self._run_cmd(cmd_fallback, timeout=5)
                 data = res.stdout
-                if data.startswith(b"\x89PNG"):
+                if res.returncode == 0 and data.startswith(b"\x89PNG"):
                     import io
                     if data[4:8] != b"\r\n\x1a\n":
                         data = data.replace(b"\r\r\n", b"\r\n").replace(b"\r\n", b"\n")
@@ -190,6 +193,9 @@ class FGOController:
                     return img
             except Exception as e2:
                 self.log(f"[截屏错误] 内存截屏兜底失败: {e2}")
+
+            if require_capture:
+                raise RuntimeError(f"无法从 {self.device_serial} 获取截图")
 
             # 极端异常情况下，若有上一帧有效画面直接返回，保证系统绝不崩溃
             if self._last_frame:
@@ -551,32 +557,20 @@ class FGOController:
         else:
             return self.wait_for_combat_command_ready(timeout=5.5, target_idx=target_idx or 1)
 
-    def select_attack_and_np(
-        self,
-        np_servant_idx: Optional[int] = 1,
-        preferred_color: str = "Arts",
-        allow_support_np: bool = False
-    ) -> bool:
-        """
-        基于 FGA 标准战斗选卡闭环 + 智能同色卡链 (Arts/Buster/Quick Chain) 优先选取：
-        1. 点击右下角【攻击】按钮 (1725, 900)；
-        2. 严格等待选卡托盘展开、右下角【Back】蓝色按钮出现 (BATTLE_CARD_SELECT)；
-        3. 点选本回合指定的宝具；np_servant_idx=None 时仅选择三张普通卡；
-        4. 视觉识别 5 张指令卡色卡类型，优先选择匹配色卡。
-        """
+    def open_command_cards(self) -> Optional[Image.Image]:
         self.log("  [实机操作] 点击右下角圆形【攻击】大按钮 (坐标: 1725, 900)...")
 
         card_select_ready = False
         card_frame: Optional[Image.Image] = None
         for attempt in range(3):
             if self.cancel_event is not None and self.cancel_event.is_set():
-                return False
+                return None
             self.click(1725, 900, delay_after=0.35)
 
             wait_until = time.time() + 1.4
             while time.time() < wait_until:
                 if self.cancel_event is not None and self.cancel_event.is_set():
-                    return False
+                    return None
                 frame = self.screencap(force_fresh=True)
                 if AnchorVerifier.is_card_select_back_button_present(frame):
                     card_select_ready = True
@@ -592,8 +586,46 @@ class FGOController:
             self.log("  √ [FGA 闭环确认] 检测到右下角【Back】蓝色按键就绪，选卡托盘已展开！")
         else:
             self.log("  [选卡停止] 未确认选卡托盘已展开，不继续盲点。")
-            return False
+            return None
+        return card_frame
 
+    def play_recorded_cards(self, chain, color_priority) -> bool:
+        """整数表示已核对的宝具槽位，None 表示按实机卡色优先级补一张普通卡。"""
+        np_slots = [slot for slot in chain if slot is not None]
+        if len(chain) != 3 or len(set(np_slots)) != len(np_slots) or any(
+                slot not in (1, 2, 3) for slot in np_slots):
+            return False
+        if self.open_command_cards() is None:
+            return False
+        self._safe_sleep(.55)
+        frame = self.screencap(force_fresh=True)
+        if not AnchorVerifier.is_card_select_back_button_present(frame):
+            return False
+        colors = AnchorVerifier.detect_command_card_colors(frame)
+        if len(colors) != 5 or any(color not in color_priority for color in colors):
+            return False
+        normal = iter(sorted(zip(colors, [225, 562, 975, 1350, 1762]),
+                             key=lambda row: color_priority.index(row[0])))
+        self.log(f"[录制选卡] 实机手牌 {colors}，优先级 {color_priority}")
+        for slot in chain:
+            if self.cancel_event is not None and self.cancel_event.is_set():
+                return False
+            if slot is None:
+                self.click(next(normal)[1], 750, delay_after=.28)
+            else:
+                self.click({1:700, 2:960, 3:1220}[slot], 320, delay_after=.28)
+        return True
+
+    def select_attack_and_np(
+        self,
+        np_servant_idx: Optional[int] = 1,
+        preferred_color: str = "Arts",
+        allow_support_np: bool = False
+    ) -> bool:
+        """打开放置区，按当前路线选宝具和同色指令卡。"""
+        card_frame = self.open_command_cards()
+        if card_frame is None:
+            return False
         # 1. 激活指定主核打手宝具卡 (默认仅点选 np_servant_idx，不乱开辅助拐宝具)
         np_coords = {1: 700, 2: 960, 3: 1220}
         if np_servant_idx is not None:

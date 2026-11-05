@@ -1,0 +1,436 @@
+/* FGO 战场外观；技能与选卡仍由原模拟状态控制。 */
+.fgo-battle { --gold:#e5cf8a; --ink:#0b1930; position:relative; isolation:isolate; overflow:hidden; border:1px solid #8eacbd; border-radius:6px; background:linear-gradient(180deg,#102b43 0%,#416b7b 45%,#182c38 100%); color:#fff; box-shadow:0 16px 40px #0005,inset 0 0 0 3px #091523; }
+.fgo-battle button,.fgo-selection button { cursor:pointer; color:inherit; font:inherit; }
+.fgo-battle button:focus-visible,.fgo-selection button:focus-visible { outline:3px solid #fff; outline-offset:3px; }
+.fgo-battle button:disabled,.fgo-selection button:disabled { cursor:default; }
+.fgo-topbar { position:relative; z-index:2; display:flex; justify-content:space-between; gap:16px; padding:16px 20px 12px; background:linear-gradient(#031123e8,#07182999,transparent); }
+.fgo-location { display:flex; flex-direction:column; gap:3px; min-width:0; }
+.fgo-location strong { font-size:15px; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-shadow:0 2px 3px #000; }
+.fgo-eyebrow { color:#9cbdcd; font-size:9px; letter-spacing:2px; font-weight:600; }
+.fgo-counters { display:flex; gap:22px; align-items:center; white-space:nowrap; font-family:Georgia,serif; font-size:16px; font-style:italic; text-shadow:0 2px 4px #000; }
+.fgo-enemy-hud { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; padding:0 20px; position:relative; z-index:3; min-height:86px; }
+.fgo-enemy-status { min-width:0; border-top:1px solid #b7cad36b; padding:5px 8px 7px; background:linear-gradient(100deg,#071524bf,#09213860); }
+.fgo-enemy-status.targeted { border-top-color:var(--gold); background:linear-gradient(100deg,#2f3028cc,#182f3e88); }
+.fgo-enemy-target { display:grid; grid-template-columns:1fr auto; background:none; border:0; width:100%; text-align:left; gap:3px; padding:0; }
+.fgo-enemy-target b { grid-column:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:13px; font-weight:500; }
+.fgo-enemy-class { color:#e9ddbd; font-size:9px; letter-spacing:1px; }
+.fgo-target-label { grid-column:2; grid-row:1/3; align-self:center; font-size:9px; color:var(--gold); }
+.fgo-hp-gauge,.fgo-np-gauge { height:5px; background:#020813cc; border:1px solid #a7c3ce80; transform:skewX(-12deg); overflow:hidden; }
+.fgo-hp-gauge>span,.fgo-np-gauge>span { display:block; height:100%; background:linear-gradient(90deg,#145989,#64c4ed); transition:width .2s ease; }
+.fgo-enemy-hp { font-size:11px; font-family:Georgia,'Microsoft YaHei',serif; text-align:right; margin-top:3px; }
+.fgo-charge { display:flex; gap:3px; color:#14252e; font-size:11px; line-height:13px; text-shadow:0 0 1px #f3dfc4; }
+.fgo-charge .charged { color:#ffb34e; text-shadow:0 0 5px #ed8c1a; }
+.fgo-stage { height:clamp(190px,24vw,300px); position:relative; overflow:hidden; }
+.fgo-horizon { position:absolute; inset:0; background:radial-gradient(ellipse at 60% 70%,#c5e0d52e,transparent 65%),linear-gradient(173deg,transparent 49%,#183a48 50%,#183a48 59%,transparent 60%),linear-gradient(187deg,transparent 40%,#284b5866 41%,#284b5866 62%,transparent 63%); }
+.fgo-horizon:before,.fgo-horizon:after { content:''; position:absolute; left:-10%; right:-10%; bottom:19%; height:45%; background:#0f2c39a6; clip-path:polygon(0 90%,10% 57%,16% 75%,23% 30%,27% 67%,38% 48%,46% 80%,59% 42%,68% 70%,78% 27%,86% 69%,94% 48%,100% 90%,100% 100%,0 100%); }
+.fgo-horizon:after { transform:scaleX(-1); bottom:12%; opacity:.5; }
+.fgo-ground { position:absolute; inset:62% -30% -90%; transform:perspective(280px) rotateX(46deg); background:repeating-linear-gradient(0deg,#90b5b714 0 1px,transparent 1px 40px),repeating-linear-gradient(90deg,#90b5b712 0 1px,transparent 1px 90px),linear-gradient(#32484c,#111f2c); border-top:1px solid #bbd2ce44; }
+.fgo-enemy-figures,.fgo-ally-figures { position:absolute; display:flex; align-items:flex-end; width:45%; height:94%; bottom:0; left:3%; gap:2%; }
+.fgo-ally-figures { left:auto; right:6%; width:43%; height:100%; }
+.fgo-enemy-figure,.fgo-ally-figure { position:relative; min-width:0; flex:1; height:75%; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; }
+.fgo-ally-figure:nth-child(2) { height:86%; }
+.fgo-ally-figure:nth-child(3) { height:98%; }
+.fgo-enemy-figure:nth-child(2) { transform:translateY(-12px); }
+.fgo-enemy-figure:after,.fgo-ally-figure:after { content:''; position:absolute; width:90%; height:12%; border-radius:50%; bottom:5%; background:#010c22a6; filter:blur(5px); z-index:-1; }
+.fgo-figure-name { position:absolute; bottom:7%; max-width:100%; font-size:10px; text-shadow:0 1px 4px #000; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:2px 7px; border-bottom:1px solid #d2e0e54a; background:#091b3066; }
+.fgo-image { display:inline-block; overflow:hidden; vertical-align:middle; }
+.fgo-image img { width:100%; height:100%; object-fit:cover; display:block; }
+.fgo-image.missing { position:relative; background:linear-gradient(145deg,#41627c66,#09172999); }
+.fgo-image.missing:after { content:'◇'; display:grid; place-items:center; position:absolute; inset:0; color:#c3dae599; font-size:25px; }
+.fgo-servant-art { width:145%; height:100%; filter:drop-shadow(0 2px 4px #04101d); mask-image:linear-gradient(#000 80%,transparent); }
+.fgo-servant-art img { object-position:50% 0; }
+.fgo-servant-art.has-figure { position:relative; width:180%; height:auto; aspect-ratio:4/3; flex-shrink:0; }
+.fgo-servant-art.has-figure img { height:auto; min-height:100%; object-fit:contain; }
+.fgo-enemy-art { width:100px; max-width:90%; height:100px; border:1px solid #c7d2cd66; border-radius:50% 50% 30% 30%; box-shadow:0 3px 12px #0004; }
+.fgo-enemy-art.has-figure { aspect-ratio:auto; height:100%; border:0; border-radius:0; }
+.fgo-enemy-art.has-figure img { height:auto; }
+.fgo-phase { position:absolute; top:6px; left:50%; transform:translateX(-50%); white-space:nowrap; padding:4px 25px; border-top:1px solid #bdd9e65e; border-bottom:1px solid #bdd9e65e; background:linear-gradient(90deg,transparent,#082844cc,transparent); color:#e5f5ff; font-size:10px; letter-spacing:3px; }
+.fgo-result { position:absolute; inset:0; display:grid; place-items:center; font:bold italic clamp(35px,5vw,70px) Georgia,serif; color:#f5dfa4; text-shadow:0 2px 5px #000,0 0 25px #ffe39e80; background:#08152677; letter-spacing:8px; }
+.fgo-result.lost { color:#cfdeeb; }
+.fgo-battle.phase-cards .fgo-stage { height:120px; }
+.fgo-battle.phase-cards .fgo-bottom,.fgo-battle.phase-cards .fgo-master { display:none; }
+.fgo-battle.phase-cards .fgo-servant-art.has-figure { width:125%; }
+.fgo-master { display:flex; flex-direction:column; gap:7px; position:absolute; z-index:4; right:10px; top:153px; align-items:center; }
+.fgo-master>span { font-size:8px; letter-spacing:1px; writing-mode:vertical-rl; position:absolute; right:-4px; top:-45px; color:#c8deed; }
+.fgo-skill { padding:0; width:39px; height:39px; border:2px solid #e9d8a6; border-radius:5px; background:linear-gradient(#d2d5b3,#464e65); position:relative; box-shadow:0 2px 3px #0008; }
+.fgo-skill:not(:disabled):hover { box-shadow:0 0 12px #ffe8ac; transform:translateY(-2px); }
+.fgo-skill:disabled { filter:saturate(.3) brightness(.65); }
+.fgo-skill-icon { display:block; width:100%; height:100%; border-radius:3px; }
+.fgo-skill-number { position:absolute; bottom:-1px; right:1px; text-shadow:0 1px 3px #000; font:11px Georgia,serif; }
+.fgo-cooldown { position:absolute; inset:0; display:grid; place-items:center; background:#00142780; color:#fff; font-size:22px; text-shadow:0 2px 3px #000; }
+.fgo-bottom { display:flex; align-items:end; gap:16px; padding:0 18px 16px; position:relative; z-index:3; background:linear-gradient(transparent,#061326b3 25%,#030d1def); }
+.fgo-party-hud { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; flex:1; min-width:0; }
+.fgo-ally-status { position:relative; min-width:0; padding:0 1px; }
+.fgo-skills { display:flex; gap:5px; margin-bottom:8px; }
+.fgo-servant-identity { display:flex; gap:6px; align-items:center; min-width:0; padding-bottom:4px; }
+.fgo-servant-identity>div { font-size:10px; white-space:pre-line; color:#e9e2c9; overflow:hidden; text-overflow:ellipsis; line-height:1.6; }
+.fgo-mini-face { width:30px; height:30px; border:1px solid #d9ca92; flex-shrink:0; }
+.fgo-hp-text,.fgo-np-text { font-size:12px; text-align:right; line-height:1.6; font-family:Georgia,'Microsoft YaHei',serif; text-shadow:0 1px 3px #000; }
+.fgo-np-text { margin-top:4px; color:#e0eaff; }
+.fgo-np-gauge { height:7px; border-color:#a7c8f0; }
+.fgo-np-gauge>span { background:linear-gradient(90deg,#1554be,#47b4ff); }
+.fgo-np-gauge.ready>span { background:linear-gradient(90deg,#c28111,#ffe88f); box-shadow:0 0 7px #fbd076; }
+.fgo-slot-label { font-size:9px; color:#9ab3c8; display:block; padding-top:5px; }
+.fgo-attack-zone { width:120px; flex-shrink:0; text-align:center; align-self:end; }
+.fgo-attack { width:108px; height:108px; border:4px solid #c2e1f3; border-radius:50%; background:radial-gradient(circle at 36% 25%,#35d6ff,#1676bf 50%,#112b62 82%); box-shadow:0 0 0 2px #0a2445,0 0 0 5px #72b9d577,inset 0 0 0 3px #c2e5fa77,inset 0 -7px 12px #112955; transform:rotate(-8deg); text-shadow:1px 3px 2px #153969; }
+.fgo-attack strong { font:bold italic 26px Georgia,serif; display:block; }
+.fgo-attack>span { font-size:10px; }
+.fgo-attack:not(:disabled):hover { filter:brightness(1.2); box-shadow:0 0 20px #42dcff; }
+.fgo-attack:disabled { filter:saturate(.4) brightness(.55); }
+.fgo-star-count { display:block; font:10px Georgia,serif; color:#f6dea4; margin-top:12px; letter-spacing:.5px; }
+.fgo-selection { container-type:inline-size; background:linear-gradient(140deg,#122844,#071424); border:1px solid #66899f; border-top:2px solid #d7c287; padding:16px 20px; box-shadow:0 12px 24px #0004; }
+.fgo-selection-header { display:flex; justify-content:space-between; gap:12px; color:#d9e8f3; margin-bottom:10px; }
+.fgo-selection-header b { font-weight:500; letter-spacing:3px; }
+.fgo-selection-header>span { color:#a2bacd; font-size:12px; }
+.fgo-command-hand { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:14px; padding:4px 8px 18px; }
+.fgo-np-hand { display:flex; justify-content:center; flex-wrap:wrap; gap:16px; margin:0 0 14px; }
+.fgo-command { position:relative; isolation:isolate; display:flex; flex-direction:column; justify-content:flex-end; min-width:0; aspect-ratio:.72; border:3px solid #d6cb9f; border-radius:10px 10px 22px 5px; padding:0; overflow:hidden; background:#164f9b; text-shadow:0 2px 3px #000; box-shadow:0 3px 8px #0008,inset 0 0 0 2px #f7efbf; transform:rotate(-3deg); transition:transform .15s,filter .15s; }
+.fgo-command:nth-child(even) { transform:rotate(2deg); }
+.fgo-command.quick { background:#16744b; }
+.fgo-command.buster { background:#ad2830; }
+.fgo-command.arts { background:#175caa; }
+.fgo-card-art { position:absolute; inset:0; z-index:-2; }
+.fgo-card-art img { object-position:center top; }
+.fgo-command:after { content:''; position:absolute; inset:0; z-index:-1; background:linear-gradient(transparent 35%,#05132833 48%,#071426ee 100%); }
+.fgo-command.arts:after { background:linear-gradient(transparent 35%,#16327855 55%,#144488 100%); }
+.fgo-command.buster:after { background:linear-gradient(transparent 35%,#8c161655 55%,#871e20 100%); }
+.fgo-command.quick:after { background:linear-gradient(transparent 35%,#124a3055 55%,#155534 100%); }
+.fgo-command.np { flex:0 1 165px; min-width:120px; max-width:190px; aspect-ratio:1.55; transform:none; border-radius:8px; border:3px solid #f1d795; box-shadow:0 4px 12px rgba(0,0,0,0.6),inset 0 0 0 1px rgba(255,255,255,0.2); transition:transform .15s,box-shadow .15s,border-color .15s,filter .15s; }
+.fgo-command.np:nth-child(even) { transform:none; }
+.fgo-command.np .fgo-card-art img { object-position:center 23%; }
+.fgo-command.np.buster { background:linear-gradient(135deg,#3d0a0d 0%,#8c1b22 50%,#b8252f 100%); border-color:#ff7b72; box-shadow:0 4px 14px rgba(184,37,47,0.55),inset 0 0 0 2px rgba(255,161,152,0.4); }
+.fgo-command.np.buster:after { background:linear-gradient(transparent 20%,rgba(140,22,22,0.5) 55%,rgba(60,8,10,0.95) 100%); }
+.fgo-command.np.arts { background:linear-gradient(135deg,#071933 0%,#154c8a 50%,#1a6bc9 100%); border-color:#79c0ff; box-shadow:0 4px 14px rgba(26,107,201,0.55),inset 0 0 0 2px rgba(165,214,255,0.4); }
+.fgo-command.np.arts:after { background:linear-gradient(transparent 20%,rgba(22,50,120,0.5) 55%,rgba(6,18,45,0.95) 100%); }
+.fgo-command.np.quick { background:linear-gradient(135deg,#082414 0%,#136638 50%,#1f884d 100%); border-color:#56d364; box-shadow:0 4px 14px rgba(31,136,77,0.55),inset 0 0 0 2px rgba(126,231,135,0.4); }
+.fgo-command.np.quick:after { background:linear-gradient(transparent 20%,rgba(18,74,48,0.5) 55%,rgba(6,30,18,0.95) 100%); }
+.fgo-command.np.unknown,.fgo-command.np:not(.arts):not(.buster):not(.quick) { background:linear-gradient(135deg,#151d26 0%,#293848 50%,#3e5062 100%); border-color:#8b949e; box-shadow:0 4px 12px rgba(0,0,0,0.6),inset 0 0 0 2px rgba(201,209,217,0.3); }
+.fgo-command.np.unknown:after,.fgo-command.np:not(.arts):not(.buster):not(.quick):after { background:linear-gradient(transparent 20%,rgba(35,45,55,0.5) 55%,rgba(12,16,22,0.95) 100%); }
+.fgo-card-name { font-size:10px; padding:3px 5px 0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.fgo-command.np .fgo-card-name { font-size:11px; font-weight:600; color:#fff; text-shadow:0 1px 3px #000,0 2px 4px #000; padding:2px 6px 0; position:relative; z-index:1; }
+.fgo-card-type { font:bold italic clamp(14px,4.5cqw,30px) Georgia,serif; line-height:1.3; padding-bottom:6px; }
+.fgo-command.np .fgo-card-type { font:bold italic 13px Georgia,'Microsoft YaHei',serif; line-height:1.2; padding:1px 6px 5px; text-shadow:0 1px 3px #000,0 0 10px currentColor; position:relative; z-index:1; }
+.fgo-command.np.arts .fgo-card-type { color:#a5d6ff; }
+.fgo-command.np.buster .fgo-card-type { color:#ffa198; }
+.fgo-command.np.quick .fgo-card-type { color:#7ee787; }
+.fgo-command.np.unknown .fgo-card-type,.fgo-command.np:not(.arts):not(.buster):not(.quick) .fgo-card-type { color:#e6edf3; }
+.fgo-critical { position:absolute; left:0; right:0; top:6px; font:bold 10px Georgia,serif; color:#ffebaa; text-shadow:0 1px 3px #000; text-align:center; }
+.fgo-card-caption { font-size:7px; letter-spacing:1px; position:absolute; left:0; right:0; top:6px; text-align:center; }
+.fgo-command.np .fgo-card-caption { position:absolute; top:5px; left:6px; right:6px; font-size:10px; font-weight:700; color:#fff; text-shadow:0 1px 3px #000; background:rgba(0,0,0,0.7); border:1px solid rgba(255,255,255,0.2); border-radius:4px; padding:2px 4px; text-align:center; letter-spacing:0.5px; }
+.fgo-command.np.selected { border-color:#fff2b2!important; box-shadow:0 0 16px #ffd761,inset 0 0 0 2px #fff!important; transform:translateY(-4px)!important; }
+.fgo-command.np:disabled:not(.selected) { filter:grayscale(0.25) brightness(0.8); opacity:0.88; cursor:not-allowed; }
+.fgo-command.np:disabled:not(.selected):hover { transform:none; filter:grayscale(0.25) brightness(0.8); }
+.fgo-command.np:disabled:not(.selected) .fgo-card-name { color:#f0f6fc; text-shadow:0 1px 3px #000,0 2px 4px #000; }
+.fgo-command.np:disabled:not(.selected) .fgo-card-type { opacity:0.95; }
+.fgo-command.np:not(:disabled):hover { transform:translateY(-4px); filter:brightness(1.15); }
+.fgo-order-badge { display:grid; place-items:center; position:absolute; top:25%; left:50%; transform:translateX(-50%) rotate(3deg); width:clamp(32px,8cqw,55px); height:clamp(32px,8cqw,55px); border:2px solid #f5de98; border-radius:50%; background:#142f4ddd; color:#ffe8af; font:bold italic clamp(14px,3.5cqw,24px) Georgia,serif; box-shadow:0 0 15px #ffe7ac77; }
+.fgo-command.selected { border-color:#fff2b2; box-shadow:0 0 12px #ffd761; }
+.fgo-command:disabled:not(.selected) { filter:saturate(.45) brightness(.55); }
+.fgo-command:not(:disabled):hover { transform:translateY(-8px); filter:brightness(1.12); }
+.fgo-card-restricted { position:absolute; top:50%; left:0; right:0; color:#fff; background:#111b; font-size:11px; }
+.fgo-chain { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:0 0 14px; }
+.fgo-chain>span { padding:8px; border-bottom:1px solid #7992a34d; color:#7891a7; font-size:11px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.fgo-chain>span.filled { color:#f3df9f; border-color:#e1c56b; }
+.fgo-card-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.fgo-card-actions .fgo-confirm { margin-left:auto; color:#182b3b; background:linear-gradient(#fff4ce,#c7af71); border-color:#efdf9f; padding:8px 25px; }
+.fgo-card-actions .fgo-secondary { border-color:#728da3; background:#17314b; }
+.fgo-enemy-actions { display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:14px 16px; background:#182737; border:1px solid #8d9eae55; }
+.fgo-enemy-actions>span { font-size:12px; color:#b8cede; margin-right:auto; }
+.fgo-reserves { display:flex; flex-wrap:wrap; gap:12px; align-items:center; padding:15px 0; border-bottom:1px solid #52677844; }
+.fgo-reserve { display:flex; align-items:center; gap:7px; position:relative; }
+.fgo-reserve-face { width:32px; height:32px; border:1px solid #77889d; border-radius:3px; }
+.fgo-reserve>span:nth-child(2) { font-size:10px; white-space:pre-line; color:#b6c3cf; line-height:1.7; }
+.fgo-reserve.fallen { opacity:.45; }
+.fgo-battle-details { margin-top:14px; font-size:12px; color:#c7d3df; }
+.fgo-battle-details summary { cursor:pointer; padding:6px 0; }
+.fgo-detail-unit { display:inline-block; vertical-align:top; min-width:25%; margin:12px 12px 8px 0; }
+.fgo-effects { font-size:11px; max-width:260px; }
+.fgo-effects>div { padding:3px 0; color:#a7bacb; }
+.fgo-damage-log { padding:10px 0; border-top:1px solid #6a83952e; }
+#manual-team-card>summary { cursor:pointer; }
+#manual-team-card:not([open]) { padding-block:15px; }
+#manual-team-card:not([open])>summary { margin:0; }
+#interactive-panel>.fgo-battle-card { padding:20px; }
+#interactive-panel .card-title.fgo-title { font-weight:500; letter-spacing:2px; }
+@media(min-width:1500px) { .fgo-stage { height:320px; } }
+@media(max-width:1050px) {
+  .fgo-skills { gap:3px; } .fgo-skill { width:32px; height:32px; }
+  .fgo-party-hud { gap:10px; } .fgo-attack-zone { width:90px; } .fgo-attack { width:78px; height:78px; }
+  .fgo-attack strong { font-size:21px; } .fgo-star-count { font-size:8px; }
+  .fgo-master { top:145px; right:7px; } .fgo-master .fgo-skill { width:30px; height:30px; }
+}
+@media(max-width:700px) {
+  #interactive-panel>.fgo-battle-card { padding:10px; } .fgo-topbar { padding:12px 10px 10px; gap:7px; }
+  .fgo-counters { font-size:11px; gap:9px; } .fgo-location strong { font-size:12px; }
+  .fgo-enemy-hud { padding:0 8px; gap:4px; min-height:80px; } .fgo-enemy-status { padding:4px; }
+  .fgo-enemy-target b { font-size:10px; } .fgo-enemy-class { font-size:7px; } .fgo-target-label { font-size:7px; }
+  .fgo-enemy-hp { font-size:8px; } .fgo-stage { height:170px; } .fgo-phase { font-size:8px; top:0; }
+  .fgo-bottom { padding:0 8px 10px; gap:8px; } .fgo-party-hud { gap:8px; }
+  .fgo-skill { width:27px; height:27px; } .fgo-mini-face { display:none; }
+  .fgo-servant-identity>div { font-size:8px; } .fgo-hp-text,.fgo-np-text { font-size:9px; }
+  .fgo-attack-zone { width:64px; } .fgo-attack { width:59px; height:59px; border-width:2px; }
+  .fgo-attack strong { font-size:16px; } .fgo-attack>span { font-size:8px; } .fgo-star-count { font-size:6px; }
+  .fgo-selection { padding:12px 10px; } .fgo-command-hand { gap:5px; padding:4px 0 12px; }
+  .fgo-command { border-width:2px; border-radius:6px 6px 12px 3px; } .fgo-card-type { font-size:18px; }
+  .fgo-card-name { font-size:8px; } .fgo-critical { font-size:8px; } .fgo-order-badge { width:35px; height:35px; font-size:18px; }
+  .fgo-np-hand { gap:8px; } .fgo-command.np { flex-basis:110px; min-width:96px; } .fgo-command.np .fgo-card-type { font-size:11px; } .fgo-command.np .fgo-card-caption { font-size:8px; padding:1px 3px; } .fgo-selection-header>span { font-size:10px; }
+  .fgo-selection-header b { font-size:12px; } .fgo-chain>span { font-size:9px; padding:5px 0; }
+}
+.fgo-pending-actor { outline:1px solid #ffe2a0; outline-offset:3px; box-shadow:0 0 16px #f8cf5f66; border-radius:5px; }
+.fgo-current-actor { border-radius:5px; animation:fgo-actor-glow 2400ms ease both; animation-delay:var(--feedback-delay,0ms); }
+.fgo-ally-figure.fgo-current-actor,.fgo-enemy-figure.fgo-current-actor { animation:none; }
+.fgo-ally-figure.fgo-pending-actor,.fgo-enemy-figure.fgo-pending-actor { outline:0; box-shadow:none; }
+.fgo-current-actor>.fgo-image { animation:fgo-art-glow 2400ms ease both; animation-delay:var(--feedback-delay,0ms); }
+.fgo-pending-actor>.fgo-image { filter:drop-shadow(0 0 8px #ffe29b) brightness(1.12); }
+.fgo-skill-target:before { content:''; position:absolute; bottom:8%; left:15%; right:15%; height:25px; border:1px solid #79e7ff; border-radius:50%; pointer-events:none; animation:fgo-feedback-fade 2400ms both; animation-delay:var(--feedback-delay,0ms); z-index:4; }
+.fgo-damage-pop { position:absolute; top:38%; left:50%; z-index:8; width:max-content; max-width:190px; text-align:center; pointer-events:none; color:#ffe7a1; text-shadow:0 2px 3px #000,1px 0 #4b300b,-1px 0 #4b300b; opacity:0; animation:fgo-number-pop 2400ms ease both; animation-delay:var(--feedback-delay,0ms); }
+.fgo-damage-pop strong { font:bold italic clamp(20px,2.7vw,32px) Georgia,serif; display:block; }
+.fgo-damage-pop small { display:block; font-size:9px; letter-spacing:1px; }
+.fgo-damage-pop.received { color:#ffbdb7; text-shadow:0 2px 3px #000,1px 0 #6a1313,-1px 0 #6a1313; }
+.fgo-unit-change { position:absolute; bottom:1px; left:50%; transform:translateX(-50%); z-index:8; width:max-content; max-width:240px; font-size:10px; color:#b7e7ff; background:#071526e8; border:1px solid #93bed677; padding:3px 7px; border-radius:4px; pointer-events:none; opacity:0; animation:fgo-feedback-fade 2400ms ease both; animation-delay:var(--feedback-delay,0ms); }
+.fgo-unit-change.loss { color:#ffb6b0; border-color:#db827077; }
+.fgo-unit-change.gain { color:#b3edda; }
+.fgo-reserve .fgo-unit-change { position:static; transform:none; }
+.fgo-gauge-changing>span { animation:fgo-gauge-change 700ms cubic-bezier(.2,.7,.2,1) both; animation-delay:var(--gauge-delay,0ms); transition:none; }
+.fgo-action-toast { position:absolute; top:33px; left:50%; transform:translateX(-50%); max-width:85%; z-index:10; padding:7px 20px; color:#fff0c9; border-block:1px solid #dfc47d99; background:linear-gradient(90deg,#0b1e3399,#182f49f5,#0b1e3399); text-shadow:0 1px 3px #000; font-size:13px; text-align:center; pointer-events:none; opacity:0; animation:fgo-feedback-fade 2400ms ease both; animation-delay:var(--feedback-delay,0ms); }
+.fgo-action-receipt { display:flex; flex-wrap:wrap; align-items:center; gap:6px 14px; padding:11px 14px; border-left:2px solid #d5bd7f; background:#152638; color:#c5d7e5; margin:9px 0; font-size:12px; }
+.fgo-action-receipt b { color:#f4dfb3; font-weight:500; }
+.fgo-action-receipt>span { font-size:11px; }
+.fgo-action-receipt.restored { border-color:#88b6da; }
+.fgo-action-receipt.restored b { color:#b4d5ef; }
+.fgo-receipt-changes { width:100%; color:#a6d7ec; }
+.fgo-receipt-hits { display:flex; flex-wrap:wrap; gap:5px 16px; width:100%; font-size:11px; color:#f2d09d; }
+@keyframes fgo-actor-glow { 0%,65% { box-shadow:0 0 0 1px #f8dda4bb,0 0 18px #ffe29b55; } 100% { box-shadow:0 0 0 1px transparent,0 0 18px transparent; } }
+@keyframes fgo-art-glow { 0%,65% { filter:drop-shadow(0 0 8px #ffe29b) brightness(1.12); } 100% { filter:drop-shadow(0 0 0 transparent) brightness(1); } }
+@keyframes fgo-number-pop { 0% { opacity:0; transform:translate(-50%,10px) scale(.9); } 12%,65% { opacity:1; transform:translate(-50%,-10px) scale(1); } 100% { opacity:0; transform:translate(-50%,-30px) scale(1); } }
+@keyframes fgo-feedback-fade { 0% { opacity:0; } 12%,75% { opacity:1; } 100% { opacity:0; } }
+@keyframes fgo-gauge-change { from { width:var(--gauge-from); } to { width:var(--gauge-to); } }
+@media(prefers-reduced-motion:reduce) {
+  .fgo-battle *,.fgo-selection *,.fgo-reserves * { transition:none!important; animation:none!important; }
+  .fgo-current-actor { outline:1px solid #f8dda4; }
+  .fgo-damage-pop,.fgo-unit-change,.fgo-action-toast,.fgo-skill-target:before { display:none; }
+}
+
+/* 从者星级与职阶筛选面板及芯片样式 */
+.fgo-filter-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(6, 17, 28, 0.7);
+  border: 1px solid #203e58;
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+.fgo-filter-group {
+  border: 1px solid #22435f;
+  border-radius: 6px;
+  padding: 4px 10px 8px;
+  margin: 0;
+  background: rgba(4, 12, 20, 0.45);
+}
+.fgo-filter-legend {
+  font-size: 11px;
+  font-weight: 700;
+  color: #e5cf8a;
+  padding: 0 6px;
+  letter-spacing: 0.5px;
+}
+.fgo-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+.fgo-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  font-size: 11px;
+  color: #c0d3e2;
+  background: rgba(14, 30, 48, 0.85);
+  border: 1px solid #284766;
+  border-radius: 12px;
+  cursor: pointer;
+  user-select: none;
+  transition: all .15s ease;
+}
+.fgo-filter-chip input[type="checkbox"] {
+  width: 13px;
+  height: 13px;
+  accent-color: #e5cf8a;
+  cursor: pointer;
+  margin: 0;
+}
+.fgo-filter-chip:hover {
+  border-color: #58a6ff;
+  color: #fff;
+  background: rgba(22, 50, 80, 0.9);
+}
+.fgo-filter-chip:has(input:checked) {
+  background: linear-gradient(135deg, rgba(229, 207, 138, 0.22) 0%, rgba(200, 160, 60, 0.32) 100%);
+  border-color: #e5cf8a;
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 0 8px rgba(229, 207, 138, 0.25);
+}
+.fgo-filter-chip:has(input:focus-visible) {
+  outline: 2px solid #58a6ff;
+  outline-offset: 1px;
+}
+.fgo-chip-label {
+  line-height: 1.2;
+}
+.fgo-filter-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 2px;
+}
+.fgo-filter-toolbar .btn {
+  padding: 4px 10px;
+  font-size: 11px;
+  color: #e5cf8a;
+  border-color: #4a6885;
+}
+.fgo-filter-toolbar .btn:hover {
+  background: rgba(229, 207, 138, 0.15);
+  border-color: #e5cf8a;
+  color: #fff;
+}
+
+/* 从者卡片下方宝具形态选择器 */
+.fgo-np-selector-box {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  background: rgba(5, 14, 24, 0.65);
+  border: 1px solid #234360;
+  border-radius: 6px;
+  padding: 6px 8px;
+  margin-top: 2px;
+}
+.fgo-np-selector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+}
+.fgo-np-selector-title {
+  font-weight: 700;
+  color: #e5cf8a;
+  letter-spacing: 0.5px;
+}
+.fgo-np-selector-tag {
+  font-size: 10px;
+  color: #8fa9be;
+}
+.fgo-np-select {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  background: #071320;
+  color: #fff;
+  border: 1px solid #2d4f6e;
+  border-radius: 4px;
+  padding: 5px 7px;
+  font-size: 11px;
+  outline: none;
+  transition: border-color .15s;
+}
+.fgo-np-select:focus {
+  border-color: #58a6ff;
+  box-shadow: 0 0 6px rgba(88, 166, 255, 0.4);
+}
+.fgo-np-preview {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 6px;
+  background: rgba(7, 20, 34, 0.7);
+  border: 1px solid #1e3952;
+  border-radius: 4px;
+  min-height: 28px;
+}
+.fgo-np-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  letter-spacing: 0.5px;
+}
+.fgo-np-badge.arts {
+  background: #15549c;
+  color: #e0f2fe;
+  border: 1px solid #38bdf8;
+  box-shadow: 0 0 6px rgba(56, 189, 248, 0.4);
+}
+.fgo-np-badge.buster {
+  background: #8e1c24;
+  color: #fee2e2;
+  border: 1px solid #f85149;
+  box-shadow: 0 0 6px rgba(248, 81, 73, 0.4);
+}
+.fgo-np-badge.quick {
+  background: #146638;
+  color: #dcfce7;
+  border: 1px solid #3fb950;
+  box-shadow: 0 0 6px rgba(63, 185, 80, 0.4);
+}
+.fgo-np-badge.default {
+  background: rgba(229, 207, 138, 0.15);
+  color: #e5cf8a;
+  border: 1px solid #c9b168;
+}
+.fgo-np-badge.unknown {
+  background: #2d3748;
+  color: #cbd5e1;
+  border: 1px solid #64748b;
+}
+.fgo-np-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+/* Keep the selected NP readable when the native select truncates. */
+.fgo-np-full-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: #f0f6fc;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.45;
+}
+.fgo-np-meta-text {
+  font-size: 10px;
+  color: #8fa9be;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.fgo-np-loading {
+  font-size: 11px;
+  color: #8fa9be;
+  padding: 4px;
+}
+.fgo-np-error {
+  font-size: 11px;
+  color: #f85149;
+  background: rgba(218, 54, 51, 0.15);
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+.fgo-np-mash-note {
+  font-size: 11px;
+  color: #8fa9be;
+  padding: 4px;
+}

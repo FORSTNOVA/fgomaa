@@ -7,7 +7,7 @@ FGO Screen State Detector - 真正的 OCR 深度学习视觉驱动感知器
 from __future__ import annotations
 import re
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageOps
 from enum import Enum
 from typing import Tuple, Dict, Any, Optional, List
 from rapidocr_onnxruntime import RapidOCR
@@ -72,6 +72,17 @@ class ScreenDetector:
                 s = 0.9
             cleaned.append((box, text.strip(), s))
         return cleaned
+
+    @classmethod
+    def read_battle_turn(cls, image: Image.Image) -> Optional[int]:
+        crop = image.crop((1290, 120, 1460, 164)).convert('RGB')
+        contrast = ImageOps.grayscale(crop).point(lambda value: 255 if value < 165 else 0).convert('RGB')
+        for sample, fill in ((crop, 0), (contrast, 255)):
+            for _, text, score in cls.run_ocr(ImageOps.expand(sample, (10, 8), fill=(fill,) * 3)):
+                match = AnchorVerifier.TURN_PATTERN.fullmatch(text)
+                if match and score >= .5 and int(match[1]) > 0:
+                    return int(match[1])
+        return None
 
     @classmethod
     def identify_regional_map(cls, ocr_results: List[Tuple], image=None) -> Tuple[str, str]:
@@ -428,6 +439,11 @@ class ScreenDetector:
             return GameScreen.ORDEAL_SELECT, 0.99, details
 
         # ------------------ 规则 2.6: 主线记录 / 特异点章节选择列表 (MAIN_RECORD) ------------------
+        from src.strategy.chapter_navigation import interlude_list
+        if interlude_list(ocr_results):
+            details["reason"] = "检测到主线物语章节选择列表"
+            details["close_coord"] = top_close_pos
+            return GameScreen.MAIN_RECORD, 0.99, details
         record_header = any('主线记录' in text and float(score)>=.55 and sum(p[1] for p in box)/4<150
                             for box,text,score in ocr_results)
         if "主线记录" in joined and not cls.find_text_coordinate(ocr_results,"通知",region=(0,0,350,160)) and (
@@ -620,17 +636,18 @@ class ScreenDetector:
             not is_card_select
         )
         if is_combat_context and attack_ready:
-            if wave_num is None:
-                # 全屏 OCR 会漏读较小的 2/3；放大独立 HUD，禁止把缺失波次当第一波。
+            if wave_num is None or turn_num is None:
+                # 全屏 OCR 会漏读较小的数字，放大独立 HUD 复核缺失项。
                 hud = pil_img.crop((1150, 0, 1480, 170)).resize((990, 510))
                 counter_ocr = [([[x / 3 + 1150, y / 3] for x, y in box], text, score)
                                for box, text, score in cls.run_ocr(hud)]
                 details["battle_counter_ocr"] = counter_ocr
-                wave_num = AnchorVerifier.extract_battle_wave(counter_ocr)
-                if wave_num is not None:
-                    details["wave"] = wave_num
+                if wave_num is None:
+                    wave_num = AnchorVerifier.extract_battle_wave(counter_ocr)
+                    if wave_num is not None:
+                        details["wave"] = wave_num
                 if turn_num is None:
-                    turn_num = AnchorVerifier.extract_battle_turn(counter_ocr)
+                    turn_num = AnchorVerifier.extract_battle_turn(counter_ocr) or cls.read_battle_turn(pil_img)
                     if turn_num is not None:
                         details["turn"] = turn_num
             if wave_num is None:

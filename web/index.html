@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/battlefield.css">
   <title>FGO MAA Assistant - 现代化智能自动化客户端</title>
   <style>
     :root {
@@ -168,6 +169,201 @@
     .first-clear-control input[type="checkbox"] { width:18px; height:18px; accent-color:var(--accent-cyan); cursor:pointer; }
     .first-clear-control input[type="number"] { width:80px; background:#0d1117; color:#fff; border:1px solid var(--border-color); border-radius:6px; padding:6px 9px; }
     .first-clear-control :disabled { opacity:.45; cursor:not-allowed; }
+    .manual-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:12px; }
+    .manual-slot { padding:12px; border:1px solid var(--border-color); border-radius:8px; min-width:0; }
+    .manual-slot select,.manual-slot input[type="search"],.manual-slot input[type="text"] { width:100%; box-sizing:border-box; margin:4px 0; }
+    .manual-slot input,.manual-toolbar input,.manual-action input { background:#0d1117; color:#fff; border:1px solid var(--border-color); border-radius:5px; padding:6px; }
+    .manual-small { width:60px; }
+    .manual-toolbar,.manual-action { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:10px 0; }
+    .manual-action { border-top:1px solid var(--border-color); padding-top:10px; }
+    .manual-action .select-control { max-width:140px; }
+    .manual-row-text { font-size:12px; color:var(--text-muted); white-space:pre-wrap; line-height:1.6; }
+    #manual-result { white-space:pre-wrap; line-height:1.8; font-size:13px; }
+
+    /* FGO 手动编队与 3+3 阵容卡片样式 */
+    .manual-roster-board { display:flex; flex-direction:column; gap:16px; margin:12px 0; }
+    .fgo-roster-section { display:flex; flex-direction:column; gap:8px; }
+    .fgo-roster-section-header { font-size:13px; font-weight:700; color:#e5cf8a; letter-spacing:1px; display:flex; align-items:center; gap:8px; }
+    .fgo-roster-section-header::before { content:''; display:inline-block; width:4px; height:14px; background:#e5cf8a; border-radius:2px; }
+    .fgo-roster-group { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+    @media(max-width:960px) {
+      .fgo-roster-group { gap:8px; }
+      .fgo-roster-slot .fgo-portrait-card { flex-direction:column; align-items:flex-start; }
+      .fgo-roster-slot .fgo-portrait-meta { width:100%; }
+    }
+    @media(max-width:620px) { .fgo-roster-group { grid-template-columns:1fr; } }
+
+    .fgo-roster-slot {
+      background:linear-gradient(180deg,#0f2438 0%,#163248 50%,#0c1b2a 100%);
+      border:1px solid #3d6582;
+      border-radius:8px;
+      padding:10px 12px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      min-width:0;
+      box-shadow:0 4px 12px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.05);
+      transition:border-color .15s;
+    }
+    .fgo-roster-slot:hover { border-color:#659bc0; }
+    .fgo-roster-slot.is-support { border-color:#d4983b; background:linear-gradient(180deg,#1c261e 0%,#243a2d 50%,#111e17 100%); }
+
+    .fgo-slot-header { display:flex; justify-content:space-between; align-items:center; gap:6px; min-width:0; }
+    .fgo-slot-index-wrap { display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-size:12px; }
+    .fgo-slot-num { font-weight:700; color:#fff; }
+    .fgo-slot-pos { font-size:11px; color:#8fa9be; }
+    .fgo-badge { display:inline-block; font-size:10px; font-weight:700; padding:1px 6px; border-radius:4px; letter-spacing:0.5px; }
+    .fgo-badge-support { background:#c67d15; color:#fff; text-shadow:0 1px 2px #000; box-shadow:0 0 6px rgba(198,125,21,0.5); }
+    .fgo-badge-custom { background:#7c3aed; color:#fff; text-shadow:0 1px 2px #000; box-shadow:0 0 6px rgba(124,58,237,0.5); }
+
+    .fgo-slot-train-btn {
+      padding:2px 8px;
+      font-size:11px;
+      color:#e5cf8a;
+      background:rgba(229,207,138,0.12);
+      border:1px solid #e5cf8a;
+      border-radius:4px;
+      cursor:pointer;
+      transition:all .15s;
+    }
+    .fgo-slot-train-btn:hover { background:rgba(229,207,138,0.3); color:#fff; }
+
+    .fgo-portrait-card {
+      display:flex;
+      align-items:center;
+      gap:10px;
+      background:rgba(6,16,28,0.6);
+      border:1px solid #284661;
+      border-radius:6px;
+      padding:6px 8px;
+      cursor:pointer;
+      text-align:left;
+      color:inherit;
+      width:100%;
+      min-width:0;
+      transition:all .15s;
+    }
+    .fgo-portrait-card:hover {
+      background:rgba(18,38,60,0.85);
+      border-color:#e5cf8a;
+      box-shadow:0 0 10px rgba(229,207,138,0.25);
+    }
+    .fgo-portrait-card.empty { border-style:dashed; border-color:#345774; opacity:.85; }
+    .fgo-portrait-card.empty:hover { opacity:1; border-color:#58a6ff; }
+
+    .fgo-portrait-thumb { width:58px; height:58px; flex-shrink:0; border:2px solid #e5cf8a; border-radius:6px; overflow:hidden; background:#071320; }
+    .fgo-ce-thumb { width:44px; height:44px; flex-shrink:0; border:1px solid #8eacbd; border-radius:4px; overflow:hidden; background:#071320; }
+    .fgo-portrait-meta { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+    .fgo-portrait-name { font-size:13px; font-weight:600; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .fgo-portrait-stats { font-size:11px; color:#e5cf8a; font-family:Georgia,serif; }
+    .fgo-portrait-sub { font-size:10px; color:#8fa9be; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+    /* 对话框与选择器样式 */
+    .fgo-dialog {
+      margin:auto;
+      padding:0;
+      max-width:720px;
+      width:calc(100vw - 32px);
+      max-height:85vh;
+      border:1px solid #527a99;
+      border-radius:10px;
+      background:#0e1d2c;
+      color:var(--text-main);
+      box-shadow:0 20px 60px rgba(0,0,0,0.85), inset 0 0 0 1px #1a3854;
+      overflow:hidden;
+      flex-direction:column;
+    }
+    .fgo-dialog[open] { display:flex; }
+    .fgo-dialog::backdrop { background:rgba(3,10,18,0.75); backdrop-filter:blur(3px); }
+
+    .fgo-dialog-header {
+      padding:12px 18px;
+      background:linear-gradient(90deg,#153047,#0c1d2e);
+      border-bottom:1px solid #284c6c;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+    .fgo-dialog-title { font-size:15px; font-weight:700; color:#e5cf8a; margin:0; }
+    .fgo-dialog-close { background:none; border:none; color:#a2bacd; font-size:18px; cursor:pointer; line-height:1; padding:4px; }
+    .fgo-dialog-close:hover { color:#fff; }
+
+    .fgo-dialog-body { padding:14px 18px; overflow-y:auto; flex:1; min-height:0; display:flex; flex-direction:column; gap:12px; }
+    .fgo-dialog-search-bar { width:100%; }
+    .fgo-dialog-search-bar input { width:100%; box-sizing:border-box; background:#081320; color:#fff; border:1px solid #304e6c; border-radius:6px; padding:8px 12px; font-size:13px; }
+    .fgo-dialog-count { font-size:11px; color:#8fa9be; }
+
+    .fgo-picker-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
+      gap:10px;
+      overflow-y:auto;
+      max-height:48vh;
+      padding:4px;
+    }
+    .fgo-picker-item {
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:6px;
+      background:rgba(8,20,32,0.7);
+      border:1px solid #254460;
+      border-radius:6px;
+      padding:8px 6px;
+      cursor:pointer;
+      color:inherit;
+      font:inherit;
+      text-align:center;
+      transition:all .15s;
+      position:relative;
+    }
+    .fgo-picker-item:hover { border-color:#e5cf8a; background:rgba(21,44,69,0.85); transform:translateY(-1px); }
+    .fgo-picker-item:disabled { opacity:.55; cursor:default; transform:none; }
+    .fgo-picker-item.selected { border-color:#e5cf8a; box-shadow:0 0 10px rgba(229,207,138,0.5); background:rgba(28,52,78,0.9); }
+    .fgo-picker-thumb { width:54px; height:54px; border:1px solid #8eacbd; border-radius:4px; overflow:hidden; background:#07121e; flex-shrink:0; }
+    .fgo-picker-name { font-size:12px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; width:100%; }
+    .fgo-picker-desc { font-size:10px; color:#8fa9be; font-family:Georgia,serif; }
+    .fgo-picker-badge { position:absolute; top:4px; right:4px; background:#e5cf8a; color:#0b1930; font-size:9px; font-weight:bold; padding:1px 4px; border-radius:3px; }
+
+    .fgo-dialog-pagination { display:flex; justify-content:space-between; align-items:center; gap:8px; padding-top:6px; border-top:1px solid #203e58; font-size:12px; }
+    .fgo-dialog-unequip-bar { margin-bottom:4px; }
+    .btn-unequip { width:100%; padding:8px; background:rgba(218,54,51,0.15); border:1px solid rgba(218,54,51,0.5); color:#f85149; border-radius:6px; cursor:pointer; }
+    .btn-unequip:hover { background:rgba(218,54,51,0.25); color:#fff; }
+
+    .fgo-editor-note { font-size:12px; color:#8fa9be; background:rgba(56,189,248,0.08); border-left:3px solid #38bdf8; padding:8px 12px; border-radius:0 4px 4px 0; }
+    .fgo-editor-error { font-size:12px; color:#ff7b72; background:rgba(218,54,51,0.15); border:1px solid rgba(218,54,51,0.4); padding:8px 12px; border-radius:4px; }
+    .fgo-editor-section { background:rgba(6,16,28,0.4); border:1px solid #22435f; border-radius:6px; padding:10px 12px; display:flex; flex-direction:column; gap:8px; }
+    .fgo-editor-section-title { font-size:12px; font-weight:700; color:#e5cf8a; letter-spacing:0.5px; }
+    .fgo-editor-fields { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px; }
+    .fgo-editor-field { display:flex; flex-direction:column; gap:3px; }
+    .fgo-editor-field span { font-size:11px; color:#8fa9be; }
+    .fgo-editor-field input, .fgo-editor-field select { min-width:0; background:#081320; color:#fff; border:1px solid #2f506e; border-radius:4px; padding:5px 8px; font-size:12px; }
+    #manual-editor-dialog form { display:grid; gap:10px; }
+    .fgo-dialog-footer { padding:12px 18px; border-top:1px solid #284c6c; background:#081320; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+    .battlefield-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; margin:12px 0; }
+    .main-container:has(#tab-battle.active #manual-panel:not([hidden])) > .workbench { display:none; }
+    .battlefield-unit { min-width:0; padding:12px 9px; border:1px solid var(--border-color); border-radius:8px; background:#0d151f; }
+    .battlefield-unit button { padding:6px 8px; font-size:12px; margin:3px 2px 0 0; }
+    .battlefield-unit progress { width:100%; height:12px; accent-color:#38bdf8; }
+    .battlefield-unit .battlefield-hp { accent-color:#3fb950; height:7px; }
+    .battlefield-dead { opacity:.55; }
+    .command-hand { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; margin:12px 0; }
+    .btn.command-card { white-space:pre-line; min-width:0; line-height:1.7; padding:12px 6px; border-top:4px solid var(--border-color); }
+    .command-card.buster { border-top-color:#f85149; }
+    .command-card.arts { border-top-color:#58a6ff; }
+    .command-card.quick { border-top-color:#3fb950; }
+    @media(max-width:900px) { .command-hand { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+    .battlefield-enemy { border-color:#713e43; background:#21151c; }
+    .battlefield-enemy.selected { border-color:#f0883e; }
+    .battlefield-enemy progress { accent-color:#f85149; }
+    #interactive-prompt { margin:auto; padding:20px; max-width:calc(100vw - 32px); border:1px solid var(--border-color); border-radius:10px; background:var(--bg-panel); color:var(--text-main); }
+    #interactive-prompt::backdrop { background:rgba(0,0,0,.65); }
+    #interactive-history { max-height:300px; overflow:auto; }
+    #interactive-history button { display:block; text-align:left; width:100%; margin:4px 0; white-space:normal; }
+    #interactive-history .current-step { border:1px solid #38bdf8; color:#38bdf8; }
+    #interactive-message { white-space:pre-wrap; font-size:13px; line-height:1.7; margin:10px 0; }
+    @media(max-width:900px) { .battlefield-grid { grid-template-columns:1fr; } }
+    @media(max-width:900px) { .manual-grid { grid-template-columns:1fr; } }
     @media(max-width:760px) { .first-clear-controls { grid-template-columns:1fr; } }
 
     .select-control {
@@ -291,7 +487,7 @@
       <div class="logo-badge">M</div>
       <div class="logo-text">
         <h1>FGO MAA</h1>
-        <p>Assistant v1.0.0 (MFAW)</p>
+        <p>v1.0.0-preview.20261105</p>
       </div>
     </div>
 
@@ -314,6 +510,10 @@
       <li class="nav-item" onclick="switchTab('quests')">
         <svg viewBox="0 0 24 24"><path d="M4 3h16v18H4V3zm3 4v2h10V7H7zm0 4v2h10v-2H7zm0 4v2h7v-2H7z"/></svg>
         自动推关 (Quests)
+      </li>
+      <li class="nav-item" onclick="switchTab('battle')">
+        <svg viewBox="0 0 24 24"><path d="M4 3h16v18H4V3zm3 4v2h10V7H7zm0 4v2h10v-2H7zm0 4v2h7v-2H7z"/></svg>
+        关卡模拟与作战
       </li>
       <li class="nav-item" onclick="switchTab('teams')">
         <svg viewBox="0 0 24 24"><path d="M14 6l-3.75 5 2.85 3.8-1.6 1.2C9.81 13.75 7 10 7 10l-6 8h22L14 6z"/></svg>
@@ -446,14 +646,14 @@
         <label>目标设备 <select id="quest-device" class="select-control" aria-label="目标设备" onchange="loadFirstClearCandidates()"></select></label>
         <div class="card" style="margin-top:16px">
           <div class="card-title">未通关自由／活动周回关卡 · 自动首通</div>
-          <p class="section-desc">自动按AP从低到高选择已解锁的普通自由关卡。每阶段核对实机进度，重新模拟、配队、装备并战斗；确认整关完成后再选下一关。苹果恢复默认关闭；赤铜按当前关卡的AP缺口一次选足个数，受本次道具个数上限和AP预算限制。上限或库存不足以补足时停止，不消耗不足的一批。</p>
+          <p class="section-desc">选择全部已适配章节时，按实机橙色数字角标逐层进入章节和地点，匹配准确关卡后模拟配队；指定章节时按AP从低到高选关。每阶段核对实机进度，重新模拟、配队、装备并战斗，整关完成后再选下一关。关卡数量可填写任意正整数，取消勾选即不限关数。苹果恢复默认关闭；赤铜按当前关卡的AP缺口一次选足个数，受本次道具个数上限和AP预算限制。上限或库存不足以补足时停止，不消耗不足的一批。</p>
           <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:12px">
             <label>章节 <select id="first-clear-war" class="select-control" onchange="loadFirstClearCandidates()"><option value="">全部已适配章节</option></select></label>
           </div>
           <div class="first-clear-controls" id="first-clear-controls">
             <div class="first-clear-control">
               <label><input id="first-clear-limit-enabled" type="checkbox" checked onchange="updateFirstClearControls()"> 最多完成</label>
-              <input id="first-clear-limit" type="number" min="1" max="30" value="3" aria-label="首通关卡数量"><span>关</span>
+              <input id="first-clear-limit" type="number" min="1" step="1" value="3" aria-label="首通关卡数量"><span>关</span>
               <span id="first-clear-limit-off" class="checkbox-desc" hidden>不限关数</span>
             </div>
             <div class="first-clear-control">
@@ -484,13 +684,13 @@
             <button id="quest-sync-button" class="btn" onclick="refreshQuestDatabase()">全量刷新关卡库</button>
             <span id="quest-sync-status" style="font-size:12px;color:var(--text-muted)">正在读取关卡库状态…</span>
           </div>
-          <p class="section-desc" style="margin-top:10px">目录自动同步国服全部章节与关卡，每24小时检查更新。当前支持已通关自由关卡、日常本和万圣节2026普通活动周回本；可按“活动关卡”筛选。未通关的已开放普通本使用上方自动首通，活动剧情需先手动解锁。未开放、体力不足或验证失败时停止。</p>
+          <p class="section-desc" style="margin-top:10px">目录每24小时检查国服关卡更新。已适配的自由关卡、日常本和万圣节2026普通活动本均可加入队列。自由关卡首通进度由上方“自动首通”管理，活动剧情需先手动解锁。实机关卡未开放、体力不足或验证失败时停止。</p>
           <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
             <select id="quest-kind" class="select-control" aria-label="关卡类型" onchange="filterQuestChoices()">
               <option value="all">全部类型</option><option value="free">自由关卡</option><option value="daily">日常本</option><option value="main">主线剧情</option><option value="event">活动关卡</option>
             </select>
-            <label style="font-size:13px"><input type="checkbox" id="quest-supported-only" checked onchange="filterQuestChoices()"> 仅显示已适配关卡</label>
-            <input id="quest-search" class="input-control" placeholder="搜索章节、地点或关卡" oninput="filterQuestChoices()" aria-label="搜索关卡">
+            <label style="font-size:13px"><input type="checkbox" id="quest-supported-only" onchange="filterQuestChoices()"> 仅显示可自动作战关卡</label>
+            <input id="quest-search" class="input-control" placeholder="搜索章节、地点、关卡、等级或 ID" oninput="filterQuestChoices()" aria-label="搜索关卡">
             <select id="quest-choice" class="select-control" aria-label="选择关卡" style="max-width:100%"></select>
             <input id="quest-runs" class="input-control" type="number" min="1" max="100" value="1" aria-label="关卡次数" style="width:80px">
             <button class="btn btn-primary" onclick="addQuestToQueue()">加入队列</button>
@@ -505,6 +705,85 @@
         <div class="card">
           <div class="card-title">执行进度与方案</div>
           <div id="quest-progress" style="white-space:pre-wrap;font-size:13px;line-height:1.8;margin-top:12px">请添加关卡；可先进行模拟预览，预览不会操作游戏。</div>
+        </div>
+      </div>
+
+      <div id="tab-battle" class="tab-content">
+        <h2 class="section-title">🎯 关卡模拟与作战</h2>
+        <p class="section-desc">选定关卡，按当前已导入账号的角色练度、强化状态和礼装进行配队模拟。默认仅模拟；勾选自动跳转后才导航、编队、装备并战斗。助战需要实机找到符合方案的角色。</p>
+        <div class="manual-toolbar"><label>配队模式 <select id="battle-mode" class="select-control" onchange="changeBattlePlanningMode()"><option value="auto">自动推荐配队</option><option value="manual">手动选择与模拟</option><option value="interactive">逐步战斗与录制</option></select></label></div>
+        <div class="card">
+          <div class="card-title">选择目标关卡</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+            <select id="battle-kind" class="select-control" aria-label="模拟关卡类型" onchange="filterBattleChoices()"><option value="all">全部类型</option><option value="free">自由关卡</option><option value="daily">日常本</option><option value="event">活动关卡</option></select>
+            <input id="battle-search" class="input-control" placeholder="搜索章节、地点、关卡、等级或 ID" aria-label="搜索模拟关卡" oninput="filterBattleChoices()">
+            <button class="btn" onclick="loadBattleCatalog()">刷新目录与账号状态</button>
+            <select id="battle-choice" class="select-control" style="max-width:100%" aria-label="模拟目标关卡" onchange="updateBattleTarget();if(document.getElementById('battle-mode').value!=='auto')manualChanged()"></select>
+          </div>
+          <div id="battle-target" class="checkbox-desc" style="margin-top:12px">请选择关卡。</div>
+          <p class="checkbox-desc">模拟按目录所示阶段计算。自动战斗要求关卡已开放且导航已适配，出击前核对实机关卡。需要推进自由关卡的前置阶段时，请使用“自动首通”。</p>
+        </div>
+        <div id="battle-auto-card" class="card">
+          <label style="display:flex;gap:10px;align-items:center;font-weight:600"><input id="battle-auto" type="checkbox" onchange="updateBattleMode()"> 模拟通过后自动跳转战斗</label>
+          <fieldset id="battle-execution-settings" disabled style="border:0;padding:0;margin-top:14px">
+            <label>目标设备 <select id="battle-device" class="select-control" aria-label="作战目标设备"><option value="">请选择设备</option></select></label>
+            <div id="battle-resources"></div>
+            <p class="checkbox-desc">最多完成按战斗场次计算。资源选项与自动首通一致：上限可分别关闭，体力恢复默认关闭；AP 预算按实机卡片消耗核对，半价活动按实际消耗计入。关闭场次上限会重复挑战所选关卡，直到体力、预算、果实上限或手动停止。</p>
+          </fieldset>
+          <div style="display:flex;gap:12px;margin-top:16px">
+            <button id="battle-start" class="btn btn-primary" onclick="startBattleLab()">开始模拟配队</button>
+            <button class="btn" onclick="stopTask()">停止任务</button>
+          </div>
+        </div>
+        <div id="battle-result-card" class="card">
+          <div class="card-title">模拟方案与执行结果</div>
+          <div id="battle-progress" style="white-space:pre-wrap;font-size:13px;line-height:1.8;margin-top:12px">尚未开始；默认不会跳转或消耗体力。</div>
+          <div id="battle-party" style="white-space:pre-wrap;line-height:1.8;margin-top:12px"></div>
+          <div id="battle-simulation"></div>
+          <div id="battle-candidates" style="white-space:pre-wrap;font-size:13px;line-height:1.8;margin-top:12px"></div>
+        </div>
+        <div id="manual-panel" hidden>
+          <details id="manual-team-card" class="card" open>
+            <summary class="card-title">六人编队 · 礼装与助战配置</summary>
+            <p class="checkbox-desc">点击头像或礼装卡搜索并选择。自有从者和礼装默认使用账号练度，刚升级时可以在「练度」中修改模拟值。编队需要 5 名自有从者和 1 名助战。</p>
+            <div class="manual-toolbar"><label>助战槽位 <select id="manual-support-slot" class="select-control" onchange="changeManualSupportSlot()"><option value="1">1号位</option><option value="2">2号位</option><option value="3" selected>3号位</option><option value="4">4号位</option><option value="5">5号位</option><option value="6">6号位</option></select></label><button class="btn" onclick="loadManualInventory(true)">刷新账号库存</button></div>
+            <div id="manual-roster" class="manual-roster-board"></div>
+            <div class="manual-toolbar"><label>御主礼装 <select id="manual-mystic-code" class="select-control" onchange="changeManualMysticCode()"><option value="">不使用御主技能</option></select></label><label>等级 <input id="manual-mystic-level" type="number" min="1" max="10" class="manual-small" placeholder="账号等级" aria-label="御主礼装等级" onchange="manualChanged();loadManualMysticCode()"></label></div>
+            <div id="manual-mystic-detail" class="manual-row-text"></div>
+            <dialog id="manual-servant-dialog" class="fgo-dialog" aria-label="选择从者"></dialog>
+            <dialog id="manual-ce-dialog" class="fgo-dialog" aria-label="选择概念礼装"></dialog>
+            <dialog id="manual-editor-dialog" class="fgo-dialog" aria-label="从者练度调整"></dialog>
+          </details>
+          <div id="manual-turn-card" class="card">
+            <div class="card-title">回合与行动顺序</div>
+            <p class="checkbox-desc">按列表从上到下执行，可上移／下移。技能和御主技能必须排在选卡前；同回合可按顺序选择1～3名角色的宝具。槽位指编队最初编号，换人后仍追踪同一角色。任意三卡普攻只用于可证明所有发牌均清场的低血量关卡。</p>
+            <div id="manual-turns"></div>
+            <button class="btn" onclick="addManualTurn()">＋添加回合</button>
+          </div>
+          <div id="manual-run-card" class="card">
+            <div class="manual-toolbar"><button id="manual-start" class="btn btn-primary" onclick="startManualSimulation()">开始手动模拟</button><button class="btn" onclick="stopManualSimulation()">中断模拟</button></div>
+            <p class="checkbox-desc">可随时修改角色、礼装或顺序；正在计算时会中断本次模拟，旧结果失效，再点击开始重新计算。手动方案仅模拟和保存，不自动出击；最低伤害条件下仅计算己方行动，不计敌方攻击。</p>
+            <div class="manual-toolbar"><input id="manual-plan-name" type="text" maxlength="80" placeholder="方案名称" aria-label="手动方案名称"><button class="btn" onclick="saveManualPlan()">保存当前方案</button><button class="btn" onclick="saveManualPlan(true)">另存为新方案</button></div>
+            <div class="manual-toolbar"><select id="manual-saved-plans" class="select-control" aria-label="已保存手动方案"><option value="">请选择已保存方案</option></select><button class="btn" onclick="loadSavedManualPlan()">载入方案</button></div>
+            <div id="manual-result">请配置六人编队和行动顺序，模拟不会连接游戏。</div>
+          </div>
+          <div id="interactive-panel" hidden>
+            <div class="card fgo-battle-card">
+              <div class="card-title fgo-title">模拟战场 <span style="font-size:10px;letter-spacing:1px;color:#8fa9be">BATTLE SIMULATOR</span></div>
+              <p class="checkbox-desc">配置队伍、礼装和助战后进场；每回合从实际五张手牌与宝具中按顺序选满三张。敌方可逐步行动，按关卡规则释放技能与执行脚本；可查看伤害倍率、效果和行动记录。操作自动保存，可回退、重做或重新分支；同一进场快照保持相同随机结果，不消耗游戏体力。</p>
+              <div class="manual-toolbar"><button id="interactive-enter" class="btn btn-primary" onclick="enterInteractiveBattle()">进入模拟战斗</button><button id="interactive-return" class="btn" onclick="returnInteractiveSelection()">返回选人</button><button class="btn" onclick="stopInteractiveCalculation()">中断计算</button><button id="interactive-undo" class="btn" onclick="moveInteractiveHistory(-1)">↶ 回退一步</button><button id="interactive-redo" class="btn" onclick="moveInteractiveHistory(1)">↷ 重做一步</button></div>
+              <div id="interactive-message">先选关并完成六人编队；进入模拟战斗时保存当前配置并开始录制。</div>
+              <div id="interactive-scene"></div>
+              <dialog id="interactive-prompt" aria-label="技能目标选择"></dialog>
+            </div>
+            <div class="card">
+              <div class="card-title">操作历史与保存</div>
+              <div class="manual-toolbar"><input id="interactive-name" class="input-control" type="text" maxlength="80" value="逐步录制草稿" aria-label="录制名称"><button class="btn" onclick="saveInteractiveRecording(false)">保存全部步骤</button><button class="btn" onclick="saveInteractiveRecording(true)">另存录制</button></div>
+              <div id="interactive-save-status" class="manual-row-text">进场后自动保存战斗录制，回退位置与可重做步骤一并保留。</div>
+              <div class="manual-toolbar"><select id="interactive-recordings" class="select-control" aria-label="已保存操作录制"><option value="">请选择录制</option></select><button class="btn" onclick="loadInteractiveRecording()">载入录制</button><button class="btn" onclick="startInteractiveFarm()">按录制实机刷一场</button></div>
+              <div id="interactive-history"></div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -618,6 +897,7 @@
   <script>
     let currentTab = 'daily';
     let logIndex = 0;
+    let logPollPending = false;
     let isRunning = false;
 
     function switchTab(tabId) {
@@ -626,12 +906,13 @@
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
       document.getElementById('tab-' + tabId).classList.add('active');
 
-      const idx = ['daily', 'weekly', 'quests', 'teams', 'chaldea', 'settings'].indexOf(tabId);
+      const idx = ['daily', 'weekly', 'quests', 'battle', 'teams', 'chaldea', 'settings'].indexOf(tabId);
       document.querySelectorAll('.nav-item')[idx].classList.add('active');
 
       // 更新大按钮文案
       const btnText = document.getElementById('main-btn-text');
       if (tabId === 'quests') { btnText.innerText = '开始自动作战'; loadQuestCatalog(); }
+      else if (tabId === 'battle') { btnText.innerText = battleActionText(); loadBattleCatalog(); }
       else if (tabId === 'weekly') btnText.innerText = '一键执行智能周常';
       else btnText.innerText = '一键启动日常';
     }
@@ -760,16 +1041,16 @@
     }
 
     function filterQuestChoices() {
-      const query = document.getElementById('quest-search').value.trim().toLowerCase();
+      const query = questSearchKey(document.getElementById('quest-search').value);
       const selector = document.getElementById('quest-choice');
       selector.replaceChildren();
       const kind = document.getElementById('quest-kind').value;
       const supportedOnly = document.getElementById('quest-supported-only').checked;
       const labels = {free:'自由',daily:'日常',main:'主线',event:'活动',friendship:'幕间',warBoard:'战棋',autoExecute:'自动剧情'};
-      const matches = questCatalog.filter(q=>(kind==='all' || q.kind===kind) && (!supportedOnly || q.supported) && `${q.war} ${q.spot} ${q.name} ${q.game_id}`.toLowerCase().includes(query));
-      matches.sort((a,b)=>Number(b.supported)-Number(a.supported));
+      const matches = questCatalog.filter(q=>(kind==='all' || q.kind===kind) && (!supportedOnly || q.supported) && matchesQuestQuery(q, query));
+      matches.sort((a,b)=>questChoicePriority(b)-questChoicePriority(a));
       matches.slice(0,300).forEach(q=>{
-        const option = new Option(`${labels[q.kind] || q.kind} · ${q.war} / ${q.spot} / ${q.name || '未命名'}${q.supported ? '' : '（'+q.reason+'）'}`, q.quest_id);
+        const option = new Option(`${labels[q.kind] || q.kind} · ${q.war} / ${q.spot} / ${q.name || '未命名'}${q.recommend_lv ? ` · Lv${q.recommend_lv}` : ''}${q.supported ? '' : '（'+q.reason+'）'}`, q.quest_id);
         option.disabled = !q.supported;
         selector.add(option);
       });
@@ -845,27 +1126,11 @@
     }
 
     function firstClearOptions() {
-      function limit(name,max,label) {
-        if (!document.getElementById(name+'-enabled').checked) return null;
-        const value=Number(document.getElementById(name).value);
-        if (!Number.isInteger(value) || value<1 || value>max) throw new Error(label+'须为1至'+max+'的整数');
-        return value;
-      }
-      const refill=document.getElementById('first-clear-refill-enabled').checked;
-      return {max_quests:limit('first-clear-limit',30,'最多完成关数'),ap_budget:limit('first-clear-ap',999,'AP预算'),
-              refill_apple:refill ? document.getElementById('first-clear-apple').value : 'none',
-              max_apples:refill ? limit('first-clear-apples',999,'果实使用上限') : 0};
+      return resourceOptions('first-clear');
     }
 
     function updateFirstClearControls() {
-      const refill=document.getElementById('first-clear-refill-enabled').checked;
-      document.getElementById('first-clear-apple').disabled=!refill;
-      document.getElementById('first-clear-apples-enabled').disabled=!refill;
-      for (const name of ['first-clear-limit','first-clear-ap','first-clear-apples']) {
-        const enabled=document.getElementById(name+'-enabled').checked;
-        document.getElementById(name).disabled=!enabled || (name==='first-clear-apples' && !refill);
-        document.getElementById(name+'-off').hidden=enabled || (name==='first-clear-apples' && !refill);
-      }
+      updateResourceControls('first-clear');
     }
 
     async function pollQuestStatus() {
@@ -937,6 +1202,7 @@
         stopTask();
       } else {
         if (currentTab === 'quests') startQuestQueue(false);
+        else if (currentTab === 'battle') startBattleLab();
         else if (currentTab === 'weekly') runWeekly();
         else runDaily();
       }
@@ -1210,20 +1476,25 @@
 
     // 日志轮询
     async function pollLogs() {
+      if (logPollPending) return;
+      logPollPending = true;
       try {
         const res = await fetch('/api/logs?since=' + logIndex);
         const data = await res.json();
+        if (!res.ok || !data.success) return;
+        const terminal = document.getElementById('log-terminal');
+        if (data.next_cursor < logIndex) terminal.replaceChildren();
         if (data.logs && data.logs.length > 0) {
-          const terminal = document.getElementById('log-terminal');
           data.logs.forEach(l => {
             const line = document.createElement('div');
             line.className = 'log-line';
             line.innerHTML = `<span class="log-time">[${l.time}]</span> <span class="log-${l.level}">${l.text}</span>`;
             terminal.appendChild(line);
           });
+          while (terminal.childElementCount > 300) terminal.firstElementChild.remove();
           terminal.scrollTop = terminal.scrollHeight;
-          logIndex += data.logs.length;
         }
+        logIndex = data.next_cursor;
 
         const badge = document.getElementById('run-status-badge');
         const btn = document.getElementById('main-action-btn');
@@ -1241,9 +1512,13 @@
           badge.style.color = '#8b949e';
           btn.classList.remove('running');
           btn.style.background = '';
-          btnText.innerText = currentTab === 'quests' ? '开始自动作战' : (currentTab === 'weekly' ? '一键执行智能周常' : '一键启动日常');
+          btnText.innerText = currentTab === 'battle' ? battleActionText() : currentTab === 'quests' ? '开始自动作战' : (currentTab === 'weekly' ? '一键执行智能周常' : '一键启动日常');
         }
-      } catch (e) {}
+      } catch (e) {
+        // Retry on the next interval.
+      } finally {
+        logPollPending = false;
+      }
     }
 
     async function exitClient() {
@@ -1257,6 +1532,7 @@
 
     // 初始化
     window.onload = () => {
+      initBattleLab();
       updateFirstClearControls();
       refreshDevices();
       loadChaldea();
@@ -1266,6 +1542,9 @@
       refreshScreen();
       setInterval(pollLogs, 1000);
       setInterval(pollQuestStatus, 1500);
+      setInterval(pollBattleStatus, 1500);
+      setInterval(pollManualStatus, 1000);
+      setInterval(pollInteractiveStatus, 500);
       setInterval(pollQuestSync, 2500);
       setInterval(pollCaptureStatus, 2000);
       setInterval(refreshScreen, 3000);  // 3秒自动刷新一次游戏视讯
@@ -1273,5 +1552,9 @@
       window.addEventListener('beforeunload', () => { fetch('/api/stop').catch(() => {}); });
     };
   </script>
+  <script src="/battle.js"></script>
+  <script src="/manual.js"></script>
+  <script src="/battlefield.js"></script>
+  <script src="/interactive.js"></script>
 </body>
 </html>

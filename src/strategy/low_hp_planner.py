@@ -5,17 +5,17 @@ from src.strategy.auto_team_builder import AutoTeamBuilder, SERVANT_TACTICAL_DB
 from src.strategy.battle_plans import TeamStrategy, TurnDirective, SkillAction
 
 
-def rotation_candidates(base, parser, quest, limit=3):
+def rotation_candidates(base, parser, quest, limit=3, *, expanded=False):
     stages = quest.get("stages", [])
     if not 1 <= len(stages) <= 3 or any(not s.get("enemies") for s in stages):
         return []
-    if max(e["hp"] for s in stages for e in s["enemies"]) > 60000:
+    if not expanded and max(e["hp"] for s in stages for e in s["enemies"]) > 60000:
         return []
     builder = AutoTeamBuilder(parser)
     owned, normal_owned = [], []
     for sid, profile in parser.servants.items():
         meta = SERVANT_TACTICAL_DB.get(sid)
-        if not meta or meta.role == "support" or sid in (201300, 504400) or profile.lv < 40:
+        if not meta or meta.role == "support" or sid in (201300, 504400) or profile.lv < 40 or profile.in_storage:
             continue
         charge = builder._get_dps_actual_self_charge(profile, meta) + profile.get_append_np_charge()
         if meta.secondary_charge_skill:
@@ -31,7 +31,7 @@ def rotation_candidates(base, parser, quest, limit=3):
                    for e in stage["enemies"])
 
     owned.sort(key=lambda row: (min(affinity(row[2], s) for s in stages), row[1].np_lv, row[1].lv), reverse=True)
-    owned = owned[:6]
+    owned = owned[:10 if expanded else 6]
     borrowed = [SERVANT_TACTICAL_DB[sid] for sid in (2300500, 501200, 1101500)]
     ranked = []
     for first, second in permutations(owned, 2):

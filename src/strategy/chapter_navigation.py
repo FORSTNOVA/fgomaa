@@ -93,6 +93,15 @@ def record_coordinate(ocr, part):
     return points[0] if len(points)==1 else None
 
 
+def interlude_list(ocr):
+    from src.strategy.screen_detector import ScreenDetector
+    return bool(ScreenDetector.find_text_coordinate(ocr,'关闭',region=(0,0,350,150))
+                and sum(normalize(text)=='主线物语' and float(score)>=.55
+                        and 950<sum(p[0] for p in box)/4<1850
+                        and 150<sum(p[1] for p in box)/4<1000
+                        for box,text,score in ocr)>=2)
+
+
 class ChapterNavigator(OrdealNavigator):
     """共用有限列表扫描、地标坐标引导与扩展地图扫描。"""
     def __init__(self, engine, wid):
@@ -106,7 +115,8 @@ class ChapterNavigator(OrdealNavigator):
             self.phase,self.still,self.terminal_image = 'top',0,None
         part = '1.5' if self.wid < 300 else '2'
         current_part = record_part(ocr) if record else None
-        if record and current_part is not None and current_part != part:
+        if record and ((current_part is not None and current_part != part)
+                       or (self.wid != 310 and interlude_list(ocr))):
             back = next((pos for text in ('关闭','返回','管理室') if
                          (pos := ScreenDetector.find_text_coordinate(ocr,text,region=(0,0,350,150))) is not None),None)
             if back is None:
@@ -120,6 +130,13 @@ class ChapterNavigator(OrdealNavigator):
             self.engine.ctrl.click(*pos,delay_after=2)
             return True
         if not record:
+            if self.wid == 310:
+                labels = [row for row in ocr if normalize(row[1]) == '主线物语' and float(row[2]) >= .55]
+                pos = ScreenDetector.find_text_coordinate(labels,'主线物语',region=(950,150,1850,890))
+                if pos:
+                    self.engine.log('[章节入口] 进入主线物语查找 Traum。')
+                    self.engine.ctrl.click(*pos,delay_after=2)
+                    return True
             pos = record_coordinate(ocr,part)
             if pos:
                 self.engine.log(f'[主线记录入口] 点击第{part}部记录，进入后再次核对目标章节。')

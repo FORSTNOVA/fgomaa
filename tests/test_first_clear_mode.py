@@ -28,8 +28,7 @@ def entry(qid=123):
 def row(qid=123):
     e=entry(qid)
     return {'quest_id':f'q{qid}','game_id':qid,'phase':3,'war':e['war'],'war_id':404,'spot':e['spot'],
-            'name':e['name'],'kind':'free','ap_per_run':5,'cleared':False,'supported':False,
-            'reason':'账号尚无该阶段已通关记录'}
+            'name':e['name'],'kind':'free','ap_per_run':5,'supported':True,'reason':''}
 
 
 class TestLiveFreeQuestProgress(unittest.TestCase):
@@ -95,6 +94,8 @@ class TestFirstClearMode(unittest.TestCase):
 
     def test_uncleared_unlocked_ordinary_quest_can_be_selected(self):
         self.assertTrue(self.catalog()['supported'])
+        self.parser.quest_records[123] = {'questPhase':3,'clearNum':1}
+        self.assertEqual(self.catalog()['reason'], '已完成首次攻略')
 
     def test_resource_navigation_difficulty_and_phase_guards_remain(self):
         for reason in ['关卡需要特殊入场资源','高难关卡机制尚未适配','该章节的自动导航尚未适配']:
@@ -122,7 +123,7 @@ class TestFirstClearMode(unittest.TestCase):
 
     def test_invalid_options_are_rejected(self):
         for value in [{'war_ids':[401]},{'war_ids':[404,404]},{'max_quests':True},
-                      {'ap_budget':0},{'max_quests':31},{'auto_refill':True}]:
+                      {'ap_budget':0},{'max_quests':0},{'auto_refill':True}]:
             with self.subTest(value=value),self.assertRaises(ValueError):FirstClearOptions.model_validate(value)
 
     def run_fake(self,observations,*,limit=1,budget=100,execute=None,cancel_event=None,on_progress=None,options=None):
@@ -137,11 +138,13 @@ class TestFirstClearMode(unittest.TestCase):
                                  progress_root=Path(self.tmp.name)/'progress')
         def candidates(parser,options,ledger):
             return [{**r,'supported':True} for r in [row(123),row(124)] if not (ledger.observation(r['game_id']) or {}).get('completed')]
-        with patch('src.workflows.first_clear_runner.FGOController'), \
+        with patch('src.workflows.first_clear_runner.FirstClearNavigator') as navigation, \
+             patch('src.workflows.first_clear_runner.FGOController'), \
              patch('src.workflows.first_clear_runner.SmartEngine',return_value=engine), \
              patch('src.workflows.first_clear_runner.first_clear_catalog',side_effect=candidates), \
              patch('src.workflows.first_clear_runner.quest_binding',side_effect=lambda key:entry(int(key[1:]))), \
              patch('src.workflows.first_clear_runner.inspect_free_quest',side_effect=observations):
+            navigation.return_value.select.side_effect=lambda rows:rows[0]
             result=runner.run(options or FirstClearOptions(max_quests=limit,ap_budget=budget),device_serial='target',cancel_event=cancel_event,on_progress=on_progress)
         return result,plans
 

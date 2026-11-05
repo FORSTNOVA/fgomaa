@@ -30,7 +30,7 @@ def synced_daily_coordinate(ocr, target):
     return None
 
 
-def navigate_daily_quest(engine, target, max_steps=45):
+def navigate_daily_quest(engine, target, max_steps=45, *, inspect_only=False):
     selected = False
     searched_from_top = False
     unchanged = 0
@@ -77,6 +77,8 @@ def navigate_daily_quest(engine, target, max_steps=45):
         pos = (synced_daily_coordinate(ocr, target) if target.startswith('atlas_cn_')
                else ScreenDetector.find_target_quest_coordinate(ocr, target_quest=target))
         if pos:
+            if inspect_only:
+                return True
             engine.ctrl.click(*pos, delay_after=1.5)
             selected = True
             continue

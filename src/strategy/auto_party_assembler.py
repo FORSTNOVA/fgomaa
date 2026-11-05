@@ -138,7 +138,7 @@ class AutoPartyAssembler:
 
         self.log_cb(msg)
 
-    def _get_servant_face_crops(self, svt_id: int) -> List[np.ndarray]:
+    def _get_servant_face_crops(self, svt_id: int, metadata=None) -> List[np.ndarray]:
 
         """获取指定从者各灵基阶段 (0~3) 及灵衣阶段的头像中心特征裁剪图 (支持本地缓存与按需拉取)"""
 
@@ -152,11 +152,12 @@ class AutoPartyAssembler:
 
         # 已缓存的公开从者资料包含灵衣头像；不能只依赖少数常用角色的手工表。
         metadata_path = get_resource_path(f"data/laplace/public/CN/servant/{svt_id}.json")
-        if metadata_path.exists():
+        if metadata is not None or metadata_path.exists():
             try:
-                metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
-                faces = metadata.get("extraAssets", {}).get("faces", {}).get("costume", {})
-                for url in faces.values():
+                if metadata is None:
+                    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+                faces = metadata.get("extraAssets", {}).get("faces", {})
+                for url in (*faces.get("ascension", {}).values(), *faces.get("costume", {}).values()):
                     match = re.fullmatch(r"https://static\.atlasacademy\.io/CN/Faces/f_(\d+)\.png", url)
                     if match and match.group(1) not in target_ids:
                         target_ids.append(match.group(1))

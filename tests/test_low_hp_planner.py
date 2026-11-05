@@ -41,6 +41,7 @@ class TestLowHpCandidates(unittest.TestCase):
         parser, base, quest = fixture()
         quest["stages"][2]["enemies"][0]["hp"] = 60001
         self.assertEqual(rotation_candidates(base, parser, quest), [])
+        self.assertTrue(rotation_candidates(base, parser, quest, expanded=True))
 
     def test_higher_np_owned_attacker_is_reserved_for_harder_wave(self):
         parser, base, quest = fixture()

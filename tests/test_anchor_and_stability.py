@@ -80,6 +80,12 @@ class TestAnchorAndStability(unittest.TestCase):
             wave = AnchorVerifier.extract_battle_wave([dummy_box])
             self.assertEqual(wave, expected_wave, f"应当提取到 Wave {expected_wave}，实际: {wave}")
 
+    def test_turn_hud_recovers_number_missing_from_full_frame_ocr(self):
+        frame = Image.new('RGB', (1920, 1080))
+        with Image.open(Path(__file__).parent / 'fixtures/battle_turn_hud.png') as crop:
+            frame.paste(crop, (1290, 120))
+        self.assertEqual(ScreenDetector.read_battle_turn(frame), 1)
+
     def test_card_select_precedence_over_combat(self):
         """测试选卡界面具有最高优先级，绝不因顶部残存 BATTLE 1/3 文本而误判为常规战斗"""
         # 模拟选卡界面：顶部有 BATTLE 1/3，右下角有蓝色 Back 按钮与指令卡

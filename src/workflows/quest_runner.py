@@ -10,6 +10,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from src.core.path_helper import get_resource_path, get_root_dir
+from src.core.atomic_io import replace_file
 from src.core.controller import FGOController
 from src.core.device_manager import DeviceManager
 from src.strategy.smart_engine import SmartEngine
@@ -48,14 +49,6 @@ class QuestRunReport(BaseModel):
     artifacts_dir: str = ''
 
 
-def quest_cleared(parser, quest_id, phase):
-    record = getattr(parser, 'quest_records', {}).get(int(quest_id), {})
-    try:
-        return int(record.get('clearNum', 0)) > 0 and int(record.get('questPhase', 0)) >= phase
-    except (TypeError, ValueError):
-        return False
-
-
 def quest_catalog(parser):
     from src.strategy.quest_catalog import quest_bindings
     from src.strategy.chapter_navigation import supports_navigation
@@ -66,12 +59,10 @@ def quest_catalog(parser):
     rows = []
     now = time()
     for key, entry in bindings.items():
-        if parser is not None:
-            entry = resolve_spot(entry,lambda qid,phase:quest_cleared(parser,qid,phase))
+        entry = resolve_spot(entry)
         kind = entry.get('kind') or ('daily' if key.startswith('daily_') else 'free')
         if 'kind' not in entry and kind == 'free' and key not in free:
             continue
-        cleared = quest_cleared(parser, entry['id'], entry['phase']) if parser is not None else False
         ap = entry.get('ap',free.get(key, {}).get('ap'))
         if kind == 'daily' and ap is None:
             cache = get_resource_path(f"data/laplace/public/CN/quest/{entry['id']}_{entry['phase']}.json")
@@ -98,11 +89,10 @@ def quest_catalog(parser):
             reason = '该章节的自动导航尚未适配'
         elif kind in ('free','event') and entry.get('after_clear','repeatLast') != 'repeatLast':
             reason = '该关卡不是普通可重复自由关卡'
-        elif kind in ('free','event') and not cleared:
-            reason = '账号尚无该阶段已通关记录'
         rows.append({'quest_id':key, 'game_id':entry['id'], 'phase':entry['phase'],
                      'war':entry['war'], 'spot':entry['spot'], 'name':entry['name'],
-                     'kind':kind, 'ap_per_run':ap, 'cleared':cleared, 'supported':not reason,
+                     'recommend_lv':entry.get('recommend_lv',''),
+                     'kind':kind, 'ap_per_run':ap, 'supported':not reason,
                      'reason':reason, 'source':entry.get('source',''), 'war_id':entry.get('war_id'),
                      'navigation_supported':(kind=='free' and supports_navigation(entry)) or (kind=='event' and supports_event(entry))})
     return rows
@@ -143,7 +133,7 @@ class QuestRunner:
             content = report.model_dump(mode='json')
             temporary = folder/'report.tmp'
             temporary.write_text(json.dumps(content, ensure_ascii=False, indent=2), encoding='utf-8')
-            temporary.replace(folder/'report.json')
+            replace_file(temporary,folder/'report.json')
             if on_progress:
                 on_progress(content)
 

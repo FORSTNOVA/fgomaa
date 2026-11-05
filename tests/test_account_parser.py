@@ -191,10 +191,14 @@ class TestAccountVersions(unittest.TestCase):
         data, profile = version_fixture()
         data["skills"].append({"id": 4, "num": 3, "name": "form skill", "priority": 2, "skillSvts": [
             {"svtId": 704000, "num": 3, "priority": 2, "releaseConditions": [
-                {"condType": "equipWithTargetCostume", "condTargetId": 704000, "condNum": 13}]}]})
+                {"condType": "equipWithTargetCostume", "condTargetId": 704000, "condNum": 13}]},
+            {"svtId": 704000, "num": 3, "priority": 4, "releaseConditions": [
+                {"condType": "equipWithTargetCostume", "condTargetId": 704000, "condNum": 19}]}]})
         self.assertEqual(resolve_versions(data, profile, {})[0]["skill_ids"][2], 3)
-        profile.costume_id = 13
-        self.assertEqual(resolve_versions(data, profile, {})[0]["skill_ids"][2], 4)
+        for costume in (13, 19):
+            with self.subTest(costume=costume):
+                profile.costume_id = costume
+                self.assertEqual(resolve_versions(data, profile, {})[0]["skill_ids"][2], 4)
 
     def test_unknown_release_condition_does_not_authorize_version(self):
         data, profile = version_fixture()
@@ -215,6 +219,16 @@ class TestAccountVersions(unittest.TestCase):
         profile.np_id = 999
         with self.assertRaises(ValueError):
             resolve_versions(data, profile, {})
+
+    def test_melusine_np_override_uses_the_matching_third_skill(self):
+        data = json.loads(Path("data/laplace/public/CN/servant/304800.json").read_text(encoding="utf-8"))
+        profile = ServantProfile(svt_id=304800, name="梅柳齐娜", lv=100, ascension=4,
+                                 costume_id=13, skill_ids=[0, 0, 888575])
+        red, _ = resolve_versions(data, profile, {})
+        self.assertEqual((red["np_id"], red["skill_ids"][2]), (304802, 888575))
+        blue, _ = resolve_versions(data, profile.model_copy(update={"np_id":304801}), {})
+        self.assertEqual((blue["np_id"], blue["skill_ids"][2]), (304801, 888550))
+        self.assertEqual(profile.skill_ids[2], 888575)
 
 
 class TestAccountSimulationInput(unittest.TestCase):

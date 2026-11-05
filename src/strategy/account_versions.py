@@ -1,5 +1,11 @@
 """Resolve owned skill/NP versions from account evidence, never from the latest row alone."""
 
+# Atlas CN binds these two versions of Horizon of Light to the matching NPs.
+MELUSINE_NP_FORMS = {
+    304801: (888550, "蓝卡单体"),
+    304802: (888575, "红卡全体"),
+}
+
 
 def resolve_versions(servant, profile, quest_records):
     ascension = profile.ascension if profile.ascension is not None else 4
@@ -33,13 +39,20 @@ def resolve_versions(servant, profile, quest_records):
         if kind == "skills":
             matches = [s for s in row.get("skillSvts", [])
                        if int(s.get("svtId", 0)) == profile.svt_id and
-                       int(s.get("num", 0)) == int(row.get("num", 0)) and
-                       int(s.get("priority", 0)) == int(row.get("priority", 0))]
+                       int(s.get("num", 0)) == int(row.get("num", 0))]
+            costume_matches = [s for s in matches if any(
+                cond.get("condType") == "equipWithTargetCostume"
+                and cond.get("condTargetId") == profile.svt_id
+                and cond.get("condNum") == profile.costume_id
+                for cond in s.get("releaseConditions", []))]
+            if costume_matches:
+                matches = sorted(costume_matches, key=lambda s: int(s.get("priority", 0)), reverse=True)
+            else:
+                matches = [s for s in matches if int(s.get("priority", 0)) == int(row.get("priority", 0))]
             return {**row, **matches[0]} if matches else row
         return row
 
-    def eligible(row, kind):
-        meta = metadata(row, kind)
+    def eligible(meta):
         if profile.lv < int(meta.get("condLv", 0)) or ascension < int(meta.get("condLimitCount", 0)):
             return False
         qid = int(meta.get("condQuestId", 0))
@@ -58,18 +71,24 @@ def resolve_versions(servant, profile, quest_records):
             if not matched:
                 raise ValueError(f"{profile.name} 的技能/宝具 ID {explicit} 与公开角色数据不匹配")
             return matched[0]
-        allowed = [r for r in rows if eligible(r, kind)]
+        versions = [(r, metadata(r, kind)) for r in rows]
+        allowed = [(r, meta) for r, meta in versions if eligible(meta)]
         if not allowed:
             if kind == "skills" and rows:
                 return None  # A skill locked behind ascension is actually unavailable.
             raise ValueError(f"无法根据账号记录确定 {profile.name} 的宝具版本")
-        chosen = max(allowed, key=lambda r: int(r.get("priority", 0)))
-        if any(int(r.get("priority", 0)) > int(chosen.get("priority", 0)) for r in rows):
+        chosen, chosen_meta = max(allowed, key=lambda pair: int(pair[1].get("priority", 0)))
+        if any(int(meta.get("priority", 0)) > int(chosen_meta.get("priority", 0)) for _, meta in versions):
             notes.append(f"{profile.name} 的{('技能' + str(slot)) if kind == 'skills' else '宝具'}使用已核实可用版本：{chosen['name']}。")
         return chosen
 
-    skills = [choose("skills", i, profile.skill_ids[i - 1] if len(profile.skill_ids) >= i else 0)
-              for i in range(1, 4)]
     np = choose("noblePhantasms", 1, profile.np_id)
+    skill_ids = [*profile.skill_ids, 0, 0, 0][:3]
+    form = MELUSINE_NP_FORMS.get(int(np["id"])) if profile.svt_id == 304800 else None
+    if form and ascension >= 3:
+        form_skill, label = form
+        skill_ids[2] = form_skill
+        notes.append(f"{profile.name} 使用{label}宝具「{np['name']}」及对应的第 3 技能。")
+    skills = [choose("skills", i, skill_id) for i, skill_id in enumerate(skill_ids, 1)]
     return {"skill_ids": [int(s["id"]) if s else 0 for s in skills], "np_id": int(np["id"]),
             "ascension": ascension}, notes

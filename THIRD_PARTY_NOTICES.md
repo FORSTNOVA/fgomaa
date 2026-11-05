@@ -20,4 +20,6 @@ AP恢复流程参考FGA的局部识别和状态复核方式；没有集成其And
 
 公开游戏数据由https://api.atlasacademy.io/提供，地图资源来自https://static.atlasacademy.io/。地图特征的准确来源与哈希见`data/navigation/halloween_2026_map.source.json`。从者、礼装、地图和游戏界面素材的权利属于各自权利人；本项目不将其声明为原创素材。
 
+逐步战场的从者静态立绘、头像、指令卡人物图及技能图标也来自 Atlas 静态资源服务；URL 读取自本地进场快照中的公开数据。按需下载的图片保存于 `.app_profile/battle_assets/`，不属于软件自有代码或新增原创美术。战场背景、卡框及界面控件由前端绘制。
+
 项目自有代码目前未另行指定统一开源许可证；第三方组件保留其原有许可证和署名。

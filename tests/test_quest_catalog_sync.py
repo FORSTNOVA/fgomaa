@@ -100,16 +100,32 @@ class TestQuestCatalogSync(unittest.TestCase):
             time.sleep(.01)
         self.assertFalse(self.service.running)
 
-    def test_new_free_quest_requires_clear_evidence_and_story_stays_disabled(self):
+    def test_new_free_quest_needs_no_clear_record_and_story_stays_disabled(self):
         self.service.refresh()
-        parser=SimpleNamespace(servants={1:object()},quest_records={93000007:{'clearNum':1,'questPhase':3}})
+        parser=SimpleNamespace(servants={1:object()})
         with patch('src.strategy.quest_catalog.catalog_sync',return_value=self.service):
             rows={r['quest_id']:r for r in quest_catalog(parser)}
             self.assertTrue(rows['atlas_cn_93000007']['supported'])
             self.assertFalse(rows['atlas_cn_100001']['supported'])
             self.assertEqual(resolve_queue([{'quest_id':'atlas_cn_93000007','runs':1}],parser)[0].game_id,93000007)
-            parser.quest_records={}
-            with self.assertRaises(ValueError):resolve_queue([{'quest_id':'atlas_cn_93000007','runs':1}],parser)
+
+    def test_bundled_halloween_90pp_is_simulatable_with_an_old_or_missing_snapshot(self):
+        from src.workflows.battle_runner import simulation_catalog
+        from src.strategy.quest_catalog import quest_binding
+        key = 'atlas_cn_94150109'
+        parser = SimpleNamespace(servants={1:object()}, quest_records={})
+        with patch('src.strategy.quest_catalog.catalog_sync', return_value=self.service), \
+             patch('time.time', return_value=1793500000):
+            bundled = quest_binding(key)
+            self.assertEqual((bundled['spot'], bundled['recommend_lv']), ('第二仓储库', '90++'))
+            old = {k:v for k,v in bundled.items() if k != 'recommend_lv'}
+            old['source'] = 'synced'
+            self.service._publish({'schema':1, 'entries':{key:old}})
+            self.assertEqual(quest_binding(key)['source'], 'synced')
+            row = next(r for r in simulation_catalog(parser) if r['quest_id'] == key)
+            self.assertEqual((row['phase'], row['ap_per_run'], row['recommend_lv']), (1, 40, '90++'))
+            self.assertTrue(row['simulation_supported'])
+            self.assertTrue(row['supported'])
 
     def test_unsupported_chapter_and_expired_quest_cannot_enter_queue(self):
         wars=exports();wars[0]['id']=999

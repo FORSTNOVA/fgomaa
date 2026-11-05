@@ -10,19 +10,36 @@ import numpy as np
 from src.strategy.screen_detector import ScreenDetector
 
 
+def quest_title_rows(ocr, name):
+    def clean(value):
+        return re.sub(r'\s+', '', unicodedata.normalize('NFKC', value))
+    target = clean(name)
+    words = sorted((sum(p[0] for p in box)/4, sum(p[1] for p in box)/4, clean(text))
+                   for box,text,score in ocr if float(score)>=.55
+                   and 1100<sum(p[0] for p in box)/4<1850
+                   and 150<sum(p[1] for p in box)/4<800)
+    rows = []
+    for index, (_, y, text) in enumerate(words):
+        for _, _, part in (word for word in words[index+1:] if abs(word[1]-y)<12):
+            if not target.startswith(text) or text==target:
+                break
+            text += part
+        if text==target and not any(abs(y-old)<12 for old in rows):
+            rows.append(y)
+    return rows
+
+
 def read_card_progress(image, ocr, entry):
     phases=entry.get('phases',[])
     if phases not in ([1],[1,2,3]):
         raise ValueError('该关卡的首次攻略阶段布局尚未适配')
     clean=lambda t:re.sub(r'\s+','',unicodedata.normalize('NFKC',t))
-    titles=[sum(p[1] for p in b)/4 for b,t,s in ocr if float(s)>=.55
-            and clean(t)==clean(entry['name']) and 1100<sum(p[0] for p in b)/4<1850
-            and 150<sum(p[1] for p in b)/4<800]
+    titles=quest_title_rows(ocr,entry['name'])
     if len(titles)!=1:
         raise ValueError('不能唯一确认目标关卡标题')
     y=titles[0]
     headers=[(round(sum(p[0] for p in b)/4),round(sum(p[1] for p in b)/4))
-             for b,t,s in ocr if float(s)>=.55 and clean(t)=='任务进行度'
+             for b,t,s in ocr if float(s)>=.55 and clean(t) in ('任务进行度','任务进行店')
              and 1320<sum(p[0] for p in b)/4<1570 and y+40<sum(p[1] for p in b)/4<y+110]
     if len(headers)!=1:
         raise ValueError('未唯一识别关卡任务进行度')
@@ -36,7 +53,7 @@ def read_card_progress(image, ocr, entry):
     glyphs=[]
     for i,(gx,gy,w,h,area) in enumerate(stats[1:],1):
         arrow=40<=w<=58 and 55<=h<=70 and 1100<=area<=2400
-        infinity=65<=w<=90 and 45<=h<=70 and 2000<=area<=4300
+        infinity=65<=w<=(100 if len(phases)==1 else 90) and 45<=h<=70 and 2000<=area<=4300
         if not (arrow or infinity) or not 10<=gx<=180:continue
         component=labels==i
         br=float(np.count_nonzero(blue&component))/int(area)
@@ -68,13 +85,10 @@ def read_card_progress(image, ocr, entry):
 def inspect_free_quest(engine, key, entry):
     if engine.is_cancelled():raise RuntimeError('任务已取消')
     from src.strategy.event_navigation import resolve_spot
-    from src.workflows.quest_runner import quest_cleared
-    parser=getattr(engine,'chaldea_parser',None)
-    if parser is not None:
-        entry=resolve_spot(entry,lambda qid,phase:quest_cleared(parser,qid,phase))
+    entry=resolve_spot(entry)
     if not engine.navigate_to_free_quest(entry['war'],entry['spot'],entry['name'],
                                          inspect_only=True,quest_key=key):
-        raise ValueError('未能打开目标自由关卡卡片，停止首通')
+        raise ValueError('未能打开目标关卡卡片')
     observations=[]
     for _ in range(2):
         if engine.is_cancelled():raise RuntimeError('任务已取消')
@@ -83,7 +97,7 @@ def inspect_free_quest(engine, key, entry):
         short,canonical=ScreenDetector.identify_regional_map(ocr,image)
         if not engine.is_target_map(short,canonical,entry['war']):
             raise ValueError('实机章节与目标不一致')
-        if engine._named_free_quest_card(ocr,entry['name'],check_ap=False) is None:
+        if entry.get('kind')!='event' and engine._named_free_quest_card(ocr,entry['name'],check_ap=False) is None:
             raise ValueError('未核对到准确自由关卡卡片')
         observation=read_card_progress(image,ocr,entry)
         folder=getattr(engine,'first_clear_observation_dir',None)

@@ -82,7 +82,9 @@ class TestEventNavigation(unittest.TestCase):
         with patch.object(ScreenDetector,'run_ocr',return_value=words):
             self.assertNotEqual(ScreenDetector.detect(self.frames['halloween_map_view'])[0],GameScreen.REGIONAL_MAP)
 
-    def test_nine_repeatable_ap_quests_are_available_with_clear_evidence(self):
+    def test_nine_repeatable_ap_quests_are_available_without_clear_records(self):
+        self.parser.quest_records = {}
+        self.parser.quest_records_complete = False
         rows=quest_catalog(self.parser)
         supported=[r for r in rows if r['supported']]
         self.assertEqual({r['game_id'] for r in supported},FARM_QUESTS)
@@ -103,13 +105,12 @@ class TestEventNavigation(unittest.TestCase):
             self.assertFalse(next(r for r in quest_catalog(self.parser) if r['quest_id']==key)['supported'])
         self.bindings[key]=base
 
-    def test_unknown_spot_resolves_only_after_exact_rename_prerequisite(self):
+    def test_event_uses_spot_name_at_unlock_without_imported_clear_record(self):
         entry=self.bindings['atlas_cn_94150103']
-        self.assertEqual(resolve_spot(entry,lambda q,p:False)['spot'],'？？？')
-        self.assertEqual(resolve_spot(entry,lambda q,p:q==94150001 and p==1)['spot'],'新亚马逊平原')
-        del self.parser.quest_records[94150001]
+        self.assertEqual(resolve_spot(entry)['spot'],'新亚马逊平原')
+        self.parser.quest_records.clear()
         row=next(r for r in quest_catalog(self.parser) if r['game_id']==94150103)
-        self.assertFalse(row['supported']);self.assertIn('地点',row['reason'])
+        self.assertTrue(row['supported']);self.assertEqual(row['spot'],'新亚马逊平原')
 
     def test_executor_preserves_renamed_spot_after_simulator_returns_original_placeholder(self):
         engine=SimpleNamespace(chaldea_parser=self.parser,navigate_to_free_quest=MagicMock(return_value=True))
@@ -121,7 +122,7 @@ class TestEventNavigation(unittest.TestCase):
         for qid in FARM_QUESTS:self.parser.quest_records.pop(qid)
         rows=first_clear_catalog(self.parser,FirstClearOptions(war_ids=[9195]),self.ledger)
         self.assertEqual({r['game_id'] for r in rows if r['supported']},FARM_QUESTS)
-        with self.assertRaises(ValueError):resolve_queue([{'quest_id':'atlas_cn_94150101','runs':1}],self.parser)
+        self.assertTrue(resolve_queue([{'quest_id':'atlas_cn_94150101','runs':1}],self.parser))
         del self.parser.quest_records[94150002]
         rows=first_clear_catalog(self.parser,FirstClearOptions(war_ids=[9195]),self.ledger)
         blocked=next(r for r in rows if r['game_id']==94150101)
